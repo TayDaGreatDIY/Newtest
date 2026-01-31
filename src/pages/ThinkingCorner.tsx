@@ -23,6 +23,7 @@ export const ThinkingCorner: React.FC = () => {
     },
   ]);
   const [input, setInput] = useState('');
+  const messageIdRef = React.useRef(2);
 
   const handleSendMessage = (message?: string) => {
     const messageToSend = message || input;
@@ -30,7 +31,7 @@ export const ThinkingCorner: React.FC = () => {
 
     // Add user message
     const userMessage: ChatMessage = {
-      id: Date.now().toString(),
+      id: String(messageIdRef.current++),
       role: 'user',
       content: messageToSend,
     };
@@ -39,7 +40,7 @@ export const ThinkingCorner: React.FC = () => {
     // Simulate AI response
     setTimeout(() => {
       const aiResponse: ChatMessage = {
-        id: (Date.now() + 1).toString(),
+        id: String(messageIdRef.current++),
         role: 'assistant',
         content: getAIResponse(messageToSend),
       };
