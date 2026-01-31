@@ -15,8 +15,11 @@ import {
 } from './pages';
 
 function App() {
+  // Use basename for GitHub Pages deployment
+  const basename = import.meta.env.BASE_URL || '/';
+  
   return (
-    <Router>
+    <Router basename={basename}>
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Layout><Landing /></Layout>} />
