@@ -1,9 +1,28 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GlassCard, SectionHeader, StatPill, GradientButton, Badge } from '../components';
+import { useAuth } from '../lib/AuthContext';
 
 export const Profile: React.FC = () => {
   const navigate = useNavigate();
+  const { user, profile, signOut, updateProfile } = useAuth();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedName, setEditedName] = useState(profile?.display_name || '');
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    setSaving(true);
+    const { error } = await updateProfile(editedName);
+    if (!error) {
+      setIsEditing(false);
+    }
+    setSaving(false);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   return (
     <div className="min-h-screen px-4 py-6">
@@ -14,12 +33,49 @@ export const Profile: React.FC = () => {
             👤
           </div>
           <div className="flex-1">
-            <h2 className="text-2xl font-bold mb-1">John Doe</h2>
-            <p className="text-gray-400 text-sm">@johndoe • Level 15</p>
+            {isEditing ? (
+              <input
+                type="text"
+                value={editedName}
+                onChange={(e) => setEditedName(e.target.value)}
+                className="w-full text-2xl font-bold mb-1 bg-white/5 border border-white/10 rounded-lg px-2 py-1 focus:border-purple-500 focus:outline-none"
+                placeholder="Enter display name"
+              />
+            ) : (
+              <h2 className="text-2xl font-bold mb-1">
+                {profile?.display_name || 'Anonymous User'}
+              </h2>
+            )}
+            <p className="text-gray-400 text-sm">{user?.email || 'user@example.com'}</p>
           </div>
-          <button className="glass px-4 py-2 rounded-xl hover:bg-white/10 transition-colors">
-            Edit
-          </button>
+          {isEditing ? (
+            <div className="flex gap-2">
+              <button 
+                onClick={handleSave}
+                disabled={saving}
+                className="glass px-4 py-2 rounded-xl hover:bg-white/10 transition-colors disabled:opacity-50"
+              >
+                {saving ? 'Saving...' : 'Save'}
+              </button>
+              <button 
+                onClick={() => {
+                  setIsEditing(false);
+                  setEditedName(profile?.display_name || '');
+                }}
+                disabled={saving}
+                className="glass px-4 py-2 rounded-xl hover:bg-white/10 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button 
+              onClick={() => setIsEditing(true)}
+              className="glass px-4 py-2 rounded-xl hover:bg-white/10 transition-colors"
+            >
+              Edit
+            </button>
+          )}
         </div>
 
         {/* Stats */}
@@ -134,7 +190,7 @@ export const Profile: React.FC = () => {
       <GradientButton 
         variant="secondary" 
         fullWidth
-        onClick={() => navigate('/')}
+        onClick={handleSignOut}
       >
         Sign Out
       </GradientButton>
