@@ -132,11 +132,6 @@ export const Auth: React.FC = () => {
                 return;
               }
               
-              if (password.length < 6) {
-                setError('Password must be at least 6 characters');
-                return;
-              }
-              
               setLoading(true);
               
               const { error } = await signUp(email, password, displayName);
