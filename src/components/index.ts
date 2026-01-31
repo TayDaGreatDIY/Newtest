@@ -1,3 +1,10 @@
 export { Button } from './Button';
 export { Card } from './Card';
 export { Badge } from './Badge';
+export { GlassCard } from './GlassCard';
+export { GradientButton } from './GradientButton';
+export { StatPill } from './StatPill';
+export { SectionHeader } from './SectionHeader';
+export { EmptyState } from './EmptyState';
+export { Modal } from './Modal';
+export { BottomNav } from './BottomNav';
