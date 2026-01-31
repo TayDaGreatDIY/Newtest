@@ -8,3 +8,4 @@ export { SectionHeader } from './SectionHeader';
 export { EmptyState } from './EmptyState';
 export { Modal } from './Modal';
 export { BottomNav } from './BottomNav';
+export { default as ErrorBoundary } from './ErrorBoundary';
