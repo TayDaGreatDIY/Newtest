@@ -4,8 +4,8 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig(() => {
-  const base = process.env.GITHUB_ACTIONS ? '/Newtest/' : '/';
-  
+  const base = process.env.GITHUB_ACTIONS ? '/Newtest/' : '/'
+
   return {
     base,
     plugins: [
@@ -24,30 +24,23 @@ export default defineConfig(() => {
           start_url: base,
           scope: base,
           icons: [
-            {
-              src: 'pwa-192x192.svg',
-              sizes: '192x192',
-              type: 'image/svg+xml'
-            },
-            {
-              src: 'pwa-512x512.svg',
-              sizes: '512x512',
-              type: 'image/svg+xml'
-            },
+            { src: 'pwa-192x192.svg', sizes: '192x192', type: 'image/svg+xml' },
+            { src: 'pwa-512x512.svg', sizes: '512x512', type: 'image/svg+xml' },
             {
               src: 'pwa-maskable-512x512.svg',
               sizes: '512x512',
               type: 'image/svg+xml',
-              purpose: 'maskable'
-            }
-          ]
+              purpose: 'maskable',
+            },
+          ],
         },
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
-          navigateFallback: '/index.html',
-          navigateFallbackDenylist: [/^\/api/]
-        }
-      })
+          navigateFallback: `${base}index.html`,
+          navigateFallbackDenylist: [/^\/api/],
+          cleanupOutdatedCaches: true,
+        },
+      }),
     ],
-  };
-});
+  }
+})
