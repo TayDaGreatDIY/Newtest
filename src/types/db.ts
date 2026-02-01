@@ -255,7 +255,7 @@ export interface AICoachConversation {
   user_id: string;
   message_role: 'user' | 'assistant';
   message_content: string;
-  conversation_context: Record<string, any> | null;
+  conversation_context: Record<string, unknown> | null;
   created_at: string;
 }
 

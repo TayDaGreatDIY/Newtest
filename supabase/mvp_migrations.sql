@@ -270,7 +270,11 @@ RETURNS TABLE(
   champion_id UUID,
   champion_name TEXT,
   champion_checkin_count BIGINT
-) AS $$
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
 BEGIN
   RETURN QUERY
   SELECT 
@@ -291,7 +295,7 @@ BEGIN
   LEFT JOIN public.profiles p ON cc.champion_id = p.id
   WHERE c.id = court_uuid;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- =====================================================
 -- 8. POSTS TABLE
@@ -384,7 +388,10 @@ CREATE POLICY "Users can unlike posts"
 
 -- Function to update like counts
 CREATE OR REPLACE FUNCTION public.update_post_likes_count()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
 BEGIN
   IF TG_OP = 'INSERT' THEN
     UPDATE public.posts
@@ -398,7 +405,7 @@ BEGIN
     RETURN OLD;
   END IF;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 -- Trigger for like count
 DROP TRIGGER IF EXISTS on_post_like_change ON public.post_likes;
@@ -451,7 +458,10 @@ CREATE POLICY "Users can delete their own comments"
 
 -- Function to update comment counts
 CREATE OR REPLACE FUNCTION public.update_post_comments_count()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
 BEGIN
   IF TG_OP = 'INSERT' THEN
     UPDATE public.posts
@@ -465,7 +475,7 @@ BEGIN
     RETURN OLD;
   END IF;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 -- Trigger for comment count
 DROP TRIGGER IF EXISTS on_post_comment_change ON public.post_comments;
@@ -561,7 +571,11 @@ RETURNS TABLE(
   user_display_name TEXT,
   is_liked_by_me BOOLEAN,
   is_reposted_by_me BOOLEAN
-) AS $$
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
 BEGIN
   RETURN QUERY
   SELECT 
@@ -590,7 +604,7 @@ BEGIN
   LIMIT limit_count
   OFFSET offset_count;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- =====================================================
 -- 13. MESSAGE THREADS TABLE
@@ -737,14 +751,17 @@ CREATE POLICY "Users can delete their own messages"
 
 -- Function to update thread's last_message_at
 CREATE OR REPLACE FUNCTION public.update_thread_last_message()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
 BEGIN
   UPDATE public.message_threads
   SET last_message_at = NEW.created_at
   WHERE id = NEW.thread_id;
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 -- Trigger for last_message_at
 DROP TRIGGER IF EXISTS on_new_message ON public.messages;
@@ -774,7 +791,11 @@ RETURNS TABLE(
   unread_count BIGINT,
   other_participant_id UUID,
   other_participant_name TEXT
-) AS $$
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
 BEGIN
   RETURN QUERY
   SELECT 
@@ -809,7 +830,7 @@ BEGIN
   LEFT JOIN public.profiles other_prof ON other_tp.user_id = other_prof.id
   ORDER BY mt.last_message_at DESC;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- Function to get messages in a thread
 CREATE OR REPLACE FUNCTION public.get_thread_messages(
@@ -824,7 +845,11 @@ RETURNS TABLE(
   sender_name TEXT,
   content TEXT,
   created_at TIMESTAMP WITH TIME ZONE
-) AS $$
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM public.thread_participants tp
@@ -848,11 +873,15 @@ BEGIN
   LIMIT limit_count
   OFFSET offset_count;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- Function to create or get existing thread between two users
 CREATE OR REPLACE FUNCTION public.get_or_create_thread(other_user_id UUID)
-RETURNS UUID AS $$
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
 DECLARE
   existing_thread_id UUID;
   new_thread_id UUID;
@@ -887,17 +916,21 @@ BEGIN
 
   RETURN new_thread_id;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- Function to mark thread as read
 CREATE OR REPLACE FUNCTION public.mark_thread_as_read(thread_uuid UUID)
-RETURNS VOID AS $$
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
 BEGIN
   UPDATE public.thread_participants
   SET last_read_at = NOW()
   WHERE thread_id = thread_uuid AND user_id = auth.uid();
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- =====================================================
 -- MIGRATION COMPLETE

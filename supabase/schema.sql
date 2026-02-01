@@ -31,7 +31,11 @@ CREATE POLICY "Users can update own profile"
 
 -- Create a function to automatically create a profile on user signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
 BEGIN
   INSERT INTO public.profiles (id, display_name)
   VALUES (
@@ -40,7 +44,7 @@ BEGIN
   );
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- Create a trigger to call the function on user creation
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
@@ -51,12 +55,15 @@ CREATE TRIGGER on_auth_user_created
 
 -- Create a function to update updated_at timestamp
 CREATE OR REPLACE FUNCTION public.handle_updated_at()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
 BEGIN
   NEW.updated_at = NOW();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 -- Create a trigger to automatically update updated_at
 DROP TRIGGER IF EXISTS on_profile_updated ON public.profiles;
