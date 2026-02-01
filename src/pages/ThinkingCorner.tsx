@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GlassCard, SectionHeader, GradientButton } from '../components';
 import { getCoachResponse, getFallbackResponse, getUserPreferences, updateUserPreferences, getConversationHistory, type ChatMessage } from '../lib/aiCoach';
 import { useAuth } from '../lib/AuthContext';
@@ -40,33 +40,31 @@ export const ThinkingCorner: React.FC = () => {
   const [savingPreferences, setSavingPreferences] = useState(false);
 
   // Load user preferences and conversation history on mount
-  const loadUserData = useCallback(async () => {
+  useEffect(() => {
     if (!user) return;
 
-    // Load preferences
-    const userPrefs = await getUserPreferences(user.id);
-    if (userPrefs) {
-      setPreferences(userPrefs);
-    }
+    const loadUserData = async () => {
+      // Load preferences
+      const userPrefs = await getUserPreferences(user.id);
+      if (userPrefs) {
+        setPreferences(userPrefs);
+      }
 
-    // Load conversation history
-    const history = await getConversationHistory(user.id, 20);
-    if (history.length > 0) {
-      setMessages([
-        {
-          role: 'assistant',
-          content: 'Welcome back! 👋 I remember our previous conversations. How can I help you today?',
-        },
-        ...history.slice(-10), // Last 10 messages
-      ]);
-    }
+      // Load conversation history
+      const history = await getConversationHistory(user.id, 20);
+      if (history.length > 0) {
+        setMessages([
+          {
+            role: 'assistant',
+            content: 'Welcome back! 👋 I remember our previous conversations. How can I help you today?',
+          },
+          ...history.slice(-10), // Last 10 messages
+        ]);
+      }
+    };
+
+    loadUserData();
   }, [user]);
-
-  useEffect(() => {
-    if (user) {
-      loadUserData();
-    }
-  }, [user, loadUserData]);
 
   const handleSavePreferences = async () => {
     if (!user) return;
