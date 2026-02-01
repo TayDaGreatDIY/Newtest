@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { GlassCard, SectionHeader, GradientButton } from '../components';
-import { getCoachResponse, getFallbackResponse, getUserPreferences, updateUserPreferences, getConversationHistory, type ChatMessage } from '../lib/aiCoach';
+import { getCoachResponse, getUserPreferences, updateUserPreferences, getConversationHistory, isOpenAIConfigured, type ChatMessage } from '../lib/aiCoach';
 import { useAuth } from '../lib/AuthContext';
 import type { AICoachPreferences } from '../types/db';
 
@@ -23,6 +23,9 @@ export const ThinkingCorner: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPreferences, setShowPreferences] = useState(false);
+  
+  // Check if using fallback mode (memoized to avoid re-calculation)
+  const usingFallback = useMemo(() => !isOpenAIConfigured(), []);
   const [preferences, setPreferences] = useState<Partial<AICoachPreferences>>({
     primary_goal: '',
     fitness_level: '',
@@ -114,16 +117,16 @@ export const ThinkingCorner: React.FC = () => {
     setLoading(false);
 
     if (apiError) {
-      // Show error and use fallback
+      // Show error but response will contain fallback content automatically
+      // The getCoachResponse function ensures fallback responses are always provided on errors
       setError(apiError);
-      const fallbackResponse = getFallbackResponse(messageToSend);
-      const aiResponse: ChatMessage = {
-        role: 'assistant',
-        content: fallbackResponse,
-      };
-      setMessages([...updatedMessages, aiResponse]);
     } else {
-      // Add AI response
+      // Clear any previous errors
+      setError(null);
+    }
+
+    // Add AI response (works for both AI and fallback)
+    if (response) {
       const aiResponse: ChatMessage = {
         role: 'assistant',
         content: response,
@@ -154,13 +157,23 @@ export const ThinkingCorner: React.FC = () => {
             </button>
           )}
         </div>
+        {usingFallback && !error && (
+          <div className="mt-4 p-3 rounded-xl bg-blue-500/10 border border-blue-500/30">
+            <p className="text-sm text-blue-400">
+              ℹ️ <strong>Basic Coach Mode</strong>
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              You're using basic coaching responses. For AI-powered personalized coaching, an OpenAI API key can be configured.
+            </p>
+          </div>
+        )}
         {error && (
           <div className="mt-4 p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/30">
             <p className="text-sm text-yellow-400">
               ⚠️ {error}
             </p>
             <p className="text-xs text-gray-400 mt-1">
-              Using fallback responses. Add your OpenAI API key to .env for full AI features.
+              Switched to basic coach responses. The AI coach can still help you with training, motivation, nutrition, and more!
             </p>
           </div>
         )}

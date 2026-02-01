@@ -17,7 +17,9 @@ This guide explains how to set up your local `.env` file for testing the M2DG ap
      - **Project URL** → `VITE_SUPABASE_URL`
      - **Project API keys** → **anon/public** → `VITE_SUPABASE_ANON_KEY`
 
-3. **Get your OpenAI API key (Optional - for AI Coach feature):**
+3. **Get your OpenAI API key (Optional - for enhanced AI Coach features):**
+   - **Note:** The AI Coach works without this key using comprehensive fallback responses
+   - For full AI-powered personalized coaching, optionally add an OpenAI API key:
    - Go to [https://platform.openai.com/api-keys](https://platform.openai.com/api-keys)
    - Create a new API key if you don't have one
    - Copy the API key
@@ -26,8 +28,10 @@ This guide explains how to set up your local `.env` file for testing the M2DG ap
    ```env
    VITE_SUPABASE_URL=https://your-project-id.supabase.co
    VITE_SUPABASE_ANON_KEY=your-anon-public-key-here
-   VITE_OPENAI_API_KEY=your-openai-api-key-here
+   VITE_OPENAI_API_KEY=your-openai-api-key-here  # Optional
    ```
+   
+   **Note:** `VITE_OPENAI_API_KEY` is optional. The AI Coach works perfectly without it using "Basic Coach Mode" with comprehensive pre-programmed responses.
 
 5. **Start the development server:**
    ```bash
@@ -99,10 +103,11 @@ If you haven't set up your Supabase database yet:
 - Restart the dev server after changing `.env` values
 
 ### "OpenAI API key is not configured" error in Thinking Corner
-- GitHub secrets are NOT available in local development - you must create a `.env` file
-- Make sure your `.env` file includes `VITE_OPENAI_API_KEY=your-key-here`
+- ✅ **FIXED:** The AI Coach now works without the API key using "Basic Coach Mode"
+- The app uses comprehensive pre-programmed coaching responses when API key is missing
+- Shows a friendly info banner instead of an error message
+- **Optional:** To enable full AI-powered coaching, add `VITE_OPENAI_API_KEY` to your `.env` file
 - Restart the dev server after adding the OpenAI key
-- The app will use fallback responses if the API key is not configured
 
 ### Authentication not working
 - Check that your Supabase URL is correct (should start with `https://`)
