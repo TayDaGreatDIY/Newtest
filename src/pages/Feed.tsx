@@ -102,8 +102,8 @@ export const Feed: React.FC = () => {
     }
   };
 
-  const handleChallenge = (postUserId: string) => {
-    navigate(`/app/challenges/new?opponent=${postUserId}`);
+  const handleChallenge = () => {
+    navigate('/app/challenges');
   };
 
   const handleCreatePost = async () => {
@@ -239,7 +239,7 @@ export const Feed: React.FC = () => {
                   <GradientButton 
                     size="sm" 
                     variant="accent"
-                    onClick={() => handleChallenge(post.user_id)}
+                    onClick={handleChallenge}
                   >
                     Challenge
                   </GradientButton>
