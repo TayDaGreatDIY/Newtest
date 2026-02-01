@@ -102,6 +102,8 @@ VITE_SUPABASE_URL=your-project-url
 VITE_SUPABASE_ANON_KEY=your-anon-key
 ```
 
+   > 📖 **Detailed Setup Guide:** See [ENV_SETUP.md](ENV_SETUP.md) for comprehensive environment configuration instructions, including GitHub Actions secrets setup.
+
 ### Running Locally
 
 Start the development server:
