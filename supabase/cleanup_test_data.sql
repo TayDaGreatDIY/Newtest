@@ -84,15 +84,13 @@ COMMIT;
 -- =====================================================
 -- Run these to verify all data has been deleted:
 
--- Check message counts
+-- Check all table counts
 SELECT 'messages' as table_name, COUNT(*) as count FROM public.messages
 UNION ALL
 SELECT 'message_threads', COUNT(*) FROM public.message_threads
 UNION ALL
 SELECT 'thread_participants', COUNT(*) FROM public.thread_participants
 UNION ALL
-
--- Check post counts
 SELECT 'posts', COUNT(*) FROM public.posts
 UNION ALL
 SELECT 'post_likes', COUNT(*) FROM public.post_likes
@@ -101,21 +99,16 @@ SELECT 'post_comments', COUNT(*) FROM public.post_comments
 UNION ALL
 SELECT 'post_reposts', COUNT(*) FROM public.post_reposts
 UNION ALL
-
--- Check challenge counts
 SELECT 'challenges', COUNT(*) FROM public.challenges
 UNION ALL
 SELECT 'challenge_participants', COUNT(*) FROM public.challenge_participants
 UNION ALL
-
--- Check court counts
 SELECT 'courts', COUNT(*) FROM public.courts
 UNION ALL
 SELECT 'court_checkins', COUNT(*) FROM public.court_checkins
 UNION ALL
-
--- Check profile count
-SELECT 'profiles', COUNT(*) FROM public.profiles;
+SELECT 'profiles', COUNT(*) FROM public.profiles
+ORDER BY table_name;
 
 -- =====================================================
 -- STORAGE CLEANUP (MANUAL STEP)
