@@ -127,6 +127,96 @@ export interface UserStats {
 }
 
 // =====================================================
+// POSTS (Phase 2)
+// =====================================================
+export interface Post {
+  id: string;
+  user_id: string;
+  type: 'text' | 'image' | 'challenge';
+  content: string;
+  image_url: string | null;
+  challenge_id: string | null;
+  likes_count: number;
+  comments_count: number;
+  shares_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PostWithUser extends Post {
+  user_display_name: string | null;
+  is_liked_by_me: boolean;
+}
+
+export interface CreatePostInput {
+  type: 'text' | 'image' | 'challenge';
+  content: string;
+  image_url?: string;
+  challenge_id?: string;
+}
+
+export interface PostLike {
+  id: string;
+  post_id: string;
+  user_id: string;
+  created_at: string;
+}
+
+export interface PostComment {
+  id: string;
+  post_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PostCommentWithUser extends PostComment {
+  user_display_name: string | null;
+}
+
+// =====================================================
+// MESSAGING (Phase 2)
+// =====================================================
+export interface MessageThread {
+  id: string;
+  last_message_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ThreadParticipant {
+  id: string;
+  thread_id: string;
+  user_id: string;
+  last_read_at: string | null;
+  created_at: string;
+}
+
+export interface Message {
+  id: string;
+  thread_id: string;
+  sender_id: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MessageWithSender extends Message {
+  sender_name: string | null;
+}
+
+export interface ThreadWithDetails {
+  thread_id: string;
+  last_message_at: string;
+  last_message: string | null;
+  last_sender_id: string | null;
+  unread_count: number;
+  other_participant_id: string | null;
+  other_participant_name: string | null;
+}
+
+// =====================================================
 // FORM VALIDATION TYPES
 // =====================================================
 export interface ValidationError {

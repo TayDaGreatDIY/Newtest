@@ -15,3 +15,4 @@ export { CourtCard } from './CourtCard';
 export { ChallengeCard } from './ChallengeCard';
 export { CreateCourtModal } from './CreateCourtModal';
 export { CreateChallengeModal } from './CreateChallengeModal';
+export { ImageUpload } from './ImageUpload';
