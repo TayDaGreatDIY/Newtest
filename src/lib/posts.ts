@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient';
-import type { Post, PostWithUser, CreatePostInput, PostComment, PostCommentWithUser } from '../types/db';
+import type { Post, PostWithUser, CreatePostInput, PostComment, PostCommentWithUser, PostRepostWithUser } from '../types/db';
 
 // =====================================================
 // POSTS
@@ -31,6 +31,7 @@ export async function getFeedPosts(limit = 50, offset = 0) {
       created_at: string;
       user_display_name: string | null;
       is_liked_by_me: boolean;
+      is_reposted_by_me: boolean;
     }) => ({
       id: row.post_id,
       user_id: row.user_id,
@@ -45,6 +46,7 @@ export async function getFeedPosts(limit = 50, offset = 0) {
       updated_at: row.created_at, // RPC doesn't return updated_at
       user_display_name: row.user_display_name,
       is_liked_by_me: row.is_liked_by_me,
+      is_reposted_by_me: row.is_reposted_by_me,
     }));
 
     return { data: posts, error: null };
@@ -289,3 +291,151 @@ export function subscribeToPostLikeChanges(callback: (payload: {
     supabase.removeChannel(channel);
   };
 }
+
+/**
+ * Repost a post
+ */
+export async function repostPost(postId: string) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    const { error } = await supabase
+      .from('post_reposts')
+      .insert({
+        post_id: postId,
+        user_id: user.id,
+      });
+
+    if (error) throw error;
+    return { error: null };
+  } catch (error) {
+    console.error('Error reposting post:', error);
+    return { error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+/**
+ * Unrepost a post
+ */
+export async function unrepostPost(postId: string) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    const { error } = await supabase
+      .from('post_reposts')
+      .delete()
+      .eq('post_id', postId)
+      .eq('user_id', user.id);
+
+    if (error) throw error;
+    return { error: null };
+  } catch (error) {
+    console.error('Error unreposting post:', error);
+    return { error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+/**
+ * Get users who reposted a post
+ */
+export async function getPostReposts(postId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('post_reposts')
+      .select(`
+        *,
+        profiles:user_id (display_name)
+      `)
+      .eq('post_id', postId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    const reposts: PostRepostWithUser[] = (data || []).map((repost: {
+      id: string;
+      post_id: string;
+      user_id: string;
+      created_at: string;
+      profiles: { display_name: string | null } | null;
+    }) => ({
+      id: repost.id,
+      post_id: repost.post_id,
+      user_id: repost.user_id,
+      created_at: repost.created_at,
+      user_display_name: repost.profiles?.display_name || null,
+    }));
+
+    return { data: reposts, error: null };
+  } catch (error) {
+    console.error('Error fetching post reposts:', error);
+    return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+/**
+ * Get a single post by ID
+ */
+export async function getPost(postId: string) {
+  try {
+    const { data, error } = await supabase
+      .from('posts')
+      .select(`
+        *,
+        profiles:user_id (display_name)
+      `)
+      .eq('id', postId)
+      .single();
+
+    if (error) throw error;
+
+    // Check if liked by current user
+    const { data: { user } } = await supabase.auth.getUser();
+    let isLikedByMe = false;
+    let isRepostedByMe = false;
+
+    if (user) {
+      const { data: likeData } = await supabase
+        .from('post_likes')
+        .select('id')
+        .eq('post_id', postId)
+        .eq('user_id', user.id)
+        .single();
+      
+      isLikedByMe = !!likeData;
+
+      const { data: repostData } = await supabase
+        .from('post_reposts')
+        .select('id')
+        .eq('post_id', postId)
+        .eq('user_id', user.id)
+        .single();
+      
+      isRepostedByMe = !!repostData;
+    }
+
+    const post: PostWithUser = {
+      id: data.id,
+      user_id: data.user_id,
+      type: data.type,
+      content: data.content,
+      image_url: data.image_url,
+      challenge_id: data.challenge_id,
+      likes_count: data.likes_count,
+      comments_count: data.comments_count,
+      shares_count: data.shares_count,
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+      user_display_name: data.profiles?.display_name || null,
+      is_liked_by_me: isLikedByMe,
+      is_reposted_by_me: isRepostedByMe,
+    };
+
+    return { data: post, error: null };
+  } catch (error) {
+    console.error('Error fetching post:', error);
+    return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+

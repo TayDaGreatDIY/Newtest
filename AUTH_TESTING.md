@@ -21,8 +21,10 @@ This document provides a comprehensive checklist for testing the authentication 
 
 2. **Verify Supabase Database**
    - [ ] Go to Supabase dashboard → SQL Editor
-   - [ ] Confirm `profiles` table exists (run `supabase/schema.sql` if not)
-   - [ ] Confirm other tables exist (run `supabase/mvp_phase1.sql` if not)
+   - [ ] Run the complete migration: Copy and paste the contents of `supabase/mvp_migrations.sql` into the SQL Editor and run it
+   - [ ] Confirm all tables exist: profiles, courts, court_checkins, challenges, challenge_participants, posts, post_likes, post_comments, post_reposts, message_threads, thread_participants, messages
+   - [ ] Go to Storage section and create a bucket named "post-images" (make it public)
+   - [ ] Set up storage policies for the post-images bucket (see instructions in mvp_migrations.sql)
 
 3. **Start Development Server**
    ```bash

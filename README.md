@@ -98,6 +98,35 @@ npm install
 3. Set up Supabase:
    - Create a free account at [https://supabase.com](https://supabase.com)
    - Create a new project
+   - Go to Project Settings → API to get your credentials:
+     - Project URL (looks like: `https://xxxxx.supabase.co`)
+     - `anon` public key
+   
+4. Create `.env` file in the project root:
+```bash
+VITE_SUPABASE_URL=your-project-url
+VITE_SUPABASE_ANON_KEY=your-anon-key
+```
+
+5. Run database migrations:
+   - Go to your Supabase dashboard
+   - Navigate to SQL Editor
+   - Copy the entire contents of `supabase/mvp_migrations.sql`
+   - Paste into the SQL Editor and click "Run"
+   - This will create all necessary tables, policies, and functions
+   
+6. Set up Storage:
+   - Go to Storage section in Supabase Dashboard
+   - Create a new bucket named `post-images`
+   - Make it public
+   - The storage policies are included in the migration SQL
+
+7. (Optional but recommended) Enable Realtime:
+   - Go to Database → Replication in Supabase Dashboard
+   - Enable replication for: `posts`, `post_likes`, `post_comments`, `messages`
+   - This enables real-time updates in the app
+
+8. Start the development server:
    - Go to Project Settings > API to find your project URL and anon key
    - Run the SQL migrations in the Supabase SQL Editor (Dashboard > SQL Editor):
      1. First, run `supabase/schema.sql` (for user profiles)

@@ -1,13 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { GlassCard, SectionHeader, GradientButton, EmptyState, Modal, ImageUpload, useToast } from '../components';
-import { getFeedPosts, likePost, unlikePost, createPost, uploadPostImage, subscribeToPostChanges, subscribeToPostLikeChanges } from '../lib/posts';
-import type { PostWithUser } from '../types/db';
+import { getFeedPosts, likePost, unlikePost, createPost, uploadPostImage, subscribeToPostChanges, subscribeToPostLikeChanges, repostPost, unrepostPost, getPostReposts } from '../lib/posts';
+import type { PostWithUser, PostRepostWithUser } from '../types/db';
 
 export const Feed: React.FC = () => {
+  const navigate = useNavigate();
   const [posts, setPosts] = useState<PostWithUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showRepostsModal, setShowRepostsModal] = useState(false);
+  const [reposts, setReposts] = useState<PostRepostWithUser[]>([]);
+  const [loadingReposts, setLoadingReposts] = useState(false);
   const [newPostContent, setNewPostContent] = useState('');
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -64,6 +69,41 @@ export const Feed: React.FC = () => {
           : post
       ));
     }
+  };
+
+  const handleRepost = async (postId: string, isReposted: boolean) => {
+    const { error } = isReposted ? await unrepostPost(postId) : await repostPost(postId);
+    if (error) {
+      showToast(`Failed to ${isReposted ? 'unrepost' : 'repost'} post: ${error}`, 'error');
+    } else {
+      // Optimistic update
+      setPosts(posts.map(post => 
+        post.id === postId 
+          ? { 
+              ...post, 
+              is_reposted_by_me: !isReposted, 
+              shares_count: isReposted ? post.shares_count - 1 : post.shares_count + 1 
+            }
+          : post
+      ));
+      showToast(isReposted ? 'Unreposted' : 'Reposted!', 'success');
+    }
+  };
+
+  const handleShowReposts = async (postId: string) => {
+    setShowRepostsModal(true);
+    setLoadingReposts(true);
+    const { data, error } = await getPostReposts(postId);
+    setLoadingReposts(false);
+    if (error) {
+      showToast(`Failed to load reposts: ${error}`, 'error');
+    } else if (data) {
+      setReposts(data);
+    }
+  };
+
+  const handleChallenge = (postUserId: string) => {
+    navigate(`/app/challenges/new?opponent=${postUserId}`);
   };
 
   const handleCreatePost = async () => {
@@ -169,7 +209,7 @@ export const Feed: React.FC = () => {
           title="Feed" 
           subtitle="What's happening in the community"
           action={
-            <GradientButton size="sm" variant="primary" onClick={() => setShowCreateModal(true)}>
+            <GradientButton size="sm" variant="primary" onClick={() => navigate('/app/posts/new')}>
               + Post
             </GradientButton>
           }
@@ -181,7 +221,7 @@ export const Feed: React.FC = () => {
             title="No posts yet"
             description="Be the first to share something with the community!"
             actionLabel="Create Post"
-            onAction={() => setShowCreateModal(true)}
+            onAction={() => navigate('/app/posts/new')}
           />
         ) : (
           <div className="space-y-4">
@@ -196,6 +236,13 @@ export const Feed: React.FC = () => {
                     <h3 className="font-bold">{post.user_display_name || 'Anonymous'}</h3>
                     <p className="text-sm text-gray-400">{formatTimestamp(post.created_at)}</p>
                   </div>
+                  <GradientButton 
+                    size="sm" 
+                    variant="accent"
+                    onClick={() => handleChallenge(post.user_id)}
+                  >
+                    Challenge
+                  </GradientButton>
                 </div>
 
                 {/* Content */}
@@ -220,7 +267,11 @@ export const Feed: React.FC = () => {
                         <p className="text-sm text-gray-400">Challenge Post</p>
                         <p className="font-bold">View Challenge Details</p>
                       </div>
-                      <GradientButton size="sm" variant="accent">
+                      <GradientButton 
+                        size="sm" 
+                        variant="accent"
+                        onClick={() => navigate(`/app/challenges/${post.challenge_id}`)}
+                      >
                         View
                       </GradientButton>
                     </div>
@@ -239,12 +290,25 @@ export const Feed: React.FC = () => {
                     <span className="text-sm">{post.likes_count}</span>
                   </button>
                   
-                  <button className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
+                  <button 
+                    onClick={() => navigate(`/app/posts/${post.id}`)}
+                    className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+                  >
                     <span>💬</span>
                     <span className="text-sm">{post.comments_count}</span>
                   </button>
                   
-                  <button className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
+                  <button 
+                    onClick={() => handleRepost(post.id, post.is_reposted_by_me)}
+                    onContextMenu={(e) => {
+                      e.preventDefault();
+                      handleShowReposts(post.id);
+                    }}
+                    className={`flex items-center gap-2 transition-colors ${
+                      post.is_reposted_by_me ? 'text-green-500' : 'text-gray-400 hover:text-white'
+                    }`}
+                    title="Click to repost, right-click to see who reposted"
+                  >
                     <span>🔄</span>
                     <span className="text-sm">{post.shares_count}</span>
                   </button>
@@ -255,7 +319,37 @@ export const Feed: React.FC = () => {
         )}
       </div>
 
-      {/* Create Post Modal */}
+      {/* Reposts Modal */}
+      <Modal
+        isOpen={showRepostsModal}
+        onClose={() => {
+          setShowRepostsModal(false);
+          setReposts([]);
+        }}
+        title="Reposted by"
+      >
+        {loadingReposts ? (
+          <div className="text-center py-6 text-gray-400">Loading...</div>
+        ) : reposts.length === 0 ? (
+          <div className="text-center py-6 text-gray-400">No reposts yet</div>
+        ) : (
+          <div className="space-y-3">
+            {reposts.map((repost) => (
+              <div key={repost.id} className="flex items-center gap-3 p-3 rounded-lg glass">
+                <div className="w-10 h-10 rounded-full gradient-accent flex items-center justify-center text-xl">
+                  🏀
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold">{repost.user_display_name || 'Anonymous'}</p>
+                  <p className="text-xs text-gray-400">{formatTimestamp(repost.created_at)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Modal>
+
+      {/* Create Post Modal - Kept for backward compatibility but redirects to /app/posts/new */}
       <Modal
         isOpen={showCreateModal}
         onClose={() => {
