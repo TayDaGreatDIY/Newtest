@@ -144,11 +144,11 @@ export const LearnMore: React.FC = () => {
             Join M2DG today and turn every court session into progress. Real hoops. Real growth. Real community.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="primary" size="lg" onClick={() => navigate('/auth')}>
+            <Button variant="primary" size="lg" onClick={() => navigate('/auth/sign-up')}>
               Get Started
             </Button>
-            <Button variant="glass" size="lg" onClick={() => navigate('/auth')}>
-              Create Account
+            <Button variant="glass" size="lg" onClick={() => navigate('/auth/sign-in')}>
+              Sign In
             </Button>
           </div>
         </section>
