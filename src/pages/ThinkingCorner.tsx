@@ -117,7 +117,8 @@ export const ThinkingCorner: React.FC = () => {
     setLoading(false);
 
     if (apiError) {
-      // Show error but still display the response (which should be fallback)
+      // Show error but response will contain fallback content automatically
+      // The getCoachResponse function ensures fallback responses are always provided on errors
       setError(apiError);
     } else {
       // Clear any previous errors
