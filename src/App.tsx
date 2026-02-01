@@ -13,7 +13,11 @@ import {
   Profile,
   ThinkingCorner,
   PostDetail,
-  CreatePost
+  CreatePost,
+  Settings,
+  Notifications,
+  Appearance,
+  AboutM2DG
 } from './pages';
 import { AuthProvider } from './lib/AuthContext';
 import { ProtectedRoute } from './lib/ProtectedRoute';
@@ -47,6 +51,10 @@ function App() {
               <Route path="messages" element={<Messages />} />
               <Route path="messages/:threadId" element={<ChatThread />} />
               <Route path="profile" element={<Profile />} />
+              <Route path="profile/settings" element={<Settings />} />
+              <Route path="profile/notifications" element={<Notifications />} />
+              <Route path="profile/appearance" element={<Appearance />} />
+              <Route path="profile/about" element={<AboutM2DG />} />
               <Route path="thinking-corner" element={<ThinkingCorner />} />
             </Route>
           </Routes>

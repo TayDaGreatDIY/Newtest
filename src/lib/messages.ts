@@ -193,3 +193,68 @@ export function subscribeToThreadUpdates(callback: (payload: {
     supabase.removeChannel(channel);
   };
 }
+
+// =====================================================
+// USER SEARCH
+// =====================================================
+
+/**
+ * Search for users by display name
+ */
+export async function searchUsers(query: string, limit = 20) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    // Search for users whose display name contains the query
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, display_name')
+      .neq('id', user.id) // Exclude current user
+      .ilike('display_name', `%${query}%`)
+      .limit(limit);
+
+    if (error) throw error;
+
+    return { 
+      data: (data || []).map(profile => ({
+        id: profile.id,
+        display_name: profile.display_name || 'Anonymous User',
+      })), 
+      error: null 
+    };
+  } catch (error) {
+    console.error('Error searching users:', error);
+    return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
+/**
+ * Get all users except current user
+ */
+export async function getAllUsers(limit = 100) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, display_name')
+      .neq('id', user.id)
+      .order('display_name', { ascending: true })
+      .limit(limit);
+
+    if (error) throw error;
+
+    return { 
+      data: (data || []).map(profile => ({
+        id: profile.id,
+        display_name: profile.display_name || 'Anonymous User',
+      })), 
+      error: null 
+    };
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
