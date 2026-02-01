@@ -121,16 +121,14 @@ export const LearnMore: React.FC = () => {
           </h2>
           <Card variant="glass" className="p-8">
             <p className="text-lg text-gray-300 leading-relaxed mb-6">
-              M2DG was built with parents in mind. Every check-in is verified using GPS or QR codes, 
-              so you know your child is exactly where they say they are—at the court, putting in real work.
+              M2DG is built for real hoopers — and real peace of mind.
+              Every check-in is verified using GPS or QR codes, so players can prove they showed up and put in real work — and parents, coaches, and trainers can trust what's being tracked.
             </p>
             <p className="text-lg text-gray-300 leading-relaxed mb-6">
-              Our platform promotes discipline, accountability, and positive competition. Kids learn the value 
-              of consistency and effort while building skills in a supportive environment.
+              Whether you're a pro, college athlete, high school hooper, youth player, or someone who just loves the game, M2DG promotes discipline, accountability, and positive competition. It's a system that rewards consistency, effort, and growth — not hype.
             </p>
             <p className="text-lg text-gray-300 leading-relaxed">
-              With community-driven respect and no tolerance for fake stats or negativity, M2DG creates 
-              a space where young athletes can grow—safely, honestly, and with purpose.
+              With community-driven respect and zero tolerance for fake stats or negativity, M2DG creates a space where athletes of every age and level can compete, improve, and represent their court with purpose.
             </p>
           </Card>
         </section>
