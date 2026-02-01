@@ -163,13 +163,64 @@ export const CourtDetail: React.FC = () => {
         className="mb-4"
       />
 
-      {/* Check-In Button */}
-      <CheckInButton 
-        courtName={court.name}
-        hasCheckedIn={hasCheckedIn}
-        onCheckIn={handleCheckIn}
-        className="mb-6"
-      />
+      {/* Court Actions */}
+      <div className="grid grid-cols-3 gap-3 mb-6">
+        <CheckInButton 
+          courtName={court.name}
+          hasCheckedIn={hasCheckedIn}
+          onCheckIn={handleCheckIn}
+        />
+        <GradientButton 
+          variant="accent"
+          onClick={() => {
+            // TODO: Implement queue functionality
+            alert('Queue feature coming soon! This will let you join the line to play next.');
+          }}
+        >
+          Queue
+        </GradientButton>
+        <GradientButton 
+          variant="secondary"
+          onClick={() => {
+            // TODO: Implement next game functionality
+            alert('Next game feature coming soon! This will show who\'s playing in the next game.');
+          }}
+        >
+          Next Game
+        </GradientButton>
+      </div>
+
+      {/* Active Games Section */}
+      <GlassCard className="mb-6">
+        <h3 className="text-lg font-bold mb-3">Active Games</h3>
+        <div className="space-y-3">
+          <div className="glass rounded-xl p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="font-bold">Court 1</span>
+              <span className="text-xs px-2 py-1 rounded-full bg-green-500/20 text-green-400">
+                In Progress
+              </span>
+            </div>
+            <p className="text-sm text-gray-400 mb-2">Started: {new Date().toLocaleTimeString()}</p>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-400">Players:</span>
+              <div className="flex -space-x-2">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div 
+                    key={i}
+                    className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 border-2 border-gray-900 flex items-center justify-center text-xs"
+                  >
+                    🏀
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <p className="text-xs text-center text-gray-500">
+            Check in to let others know you're here and available to play!
+          </p>
+        </div>
+      </GlassCard>
 
       {/* Recent Check-ins */}
       <div className="mb-6">

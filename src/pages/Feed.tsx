@@ -232,7 +232,11 @@ export const Feed: React.FC = () => {
                   <div className="w-12 h-12 rounded-full gradient-accent flex items-center justify-center text-2xl">
                     🏀
                   </div>
-                  <div className="flex-1">
+                  <div 
+                    className="flex-1 cursor-pointer hover:opacity-80 transition-opacity" 
+                    onClick={() => navigate('/app/profile')}
+                    title="View profile"
+                  >
                     <h3 className="font-bold">{post.user_display_name || 'Anonymous'}</h3>
                     <p className="text-sm text-gray-400">{formatTimestamp(post.created_at)}</p>
                   </div>
