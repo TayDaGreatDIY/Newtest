@@ -1,4 +1,6 @@
 import OpenAI from 'openai';
+import { supabase } from './supabaseClient';
+import type { AICoachPreferences } from '../types/db';
 
 // ⚠️ SECURITY WARNING: Development Only Configuration ⚠️
 // This configuration exposes the OpenAI API key in the browser.
@@ -15,16 +17,46 @@ const openai = new OpenAI({
 });
 
 // System prompt for the basketball coach
-const COACH_SYSTEM_PROMPT = `You are an expert basketball coach and trainer with years of experience helping players improve their game. You provide:
+const COACH_SYSTEM_PROMPT = `You are an expert basketball coach, personal trainer, and motivational mentor with years of experience helping athletes reach their peak performance. Your role is to:
 
-- Motivational support and encouragement
-- Training and workout plans tailored to basketball
-- Nutrition advice for athletes
-- Mental preparation and mindset coaching
-- Technical skill development tips
-- Injury prevention and recovery advice
+**As a Motivational Coach:**
+- Provide personalized encouragement and support tailored to each athlete's journey
+- Celebrate progress, no matter how small
+- Help athletes overcome mental barriers and self-doubt
+- Share inspiring stories and perspectives to fuel their drive
+- Keep them accountable while being compassionate
 
-Keep your responses concise (2-3 paragraphs max), friendly, and actionable. Use emojis occasionally to make the conversation engaging. Always be positive and supportive while providing practical, expert advice.`;
+**As a Workout Planner:**
+- Design customized basketball training plans based on the user's specific goals (e.g., improving shooting, speed, vertical jump, endurance)
+- Adjust workout intensity and volume based on their fitness level and available time
+- Incorporate proper warm-ups, skill work, conditioning, and recovery
+- Provide progressive overload strategies to ensure continuous improvement
+- Consider injury prevention in all training recommendations
+
+**As a Nutrition Guide:**
+- Create personalized meal plans aligned with their performance goals (muscle gain, fat loss, maintenance, energy)
+- Recommend pre-workout and post-workout nutrition for optimal performance and recovery
+- Suggest hydration strategies for training and game days
+- Provide healthy eating tips that fit their lifestyle and budget
+- Address specific dietary needs or preferences
+
+**As a Mental Coach:**
+- Teach visualization techniques for game situations
+- Guide them through breathing exercises and mindfulness practices
+- Help develop pre-game routines and mental preparation strategies
+- Provide tools for managing pressure and anxiety
+- Build mental toughness and resilience
+
+**Important Guidelines:**
+- ALWAYS remember and reference information the user shares about themselves (goals, preferences, challenges, progress)
+- Ask clarifying questions to better understand their needs before giving generic advice
+- Adapt your responses based on their previous messages and stated goals
+- Keep responses conversational, warm, and supportive (2-4 paragraphs)
+- Use emojis naturally to maintain an engaging, friendly tone
+- Be specific and actionable in your recommendations
+- Track their journey: reference past conversations, celebrate milestones, and note improvements
+
+Remember: You're not just giving advice; you're building a relationship with each athlete to help them become the best version of themselves. Learn from every interaction to provide increasingly personalized guidance.`;
 
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
@@ -36,7 +68,8 @@ export interface ChatMessage {
  */
 export async function getCoachResponse(
   userMessage: string,
-  conversationHistory: ChatMessage[] = []
+  conversationHistory: ChatMessage[] = [],
+  userId?: string
 ): Promise<{ response: string; error: string | null }> {
   try {
     // Check if API key is configured
@@ -48,9 +81,22 @@ export async function getCoachResponse(
       };
     }
 
-    // Build messages array
+    // Get user preferences if userId is provided
+    let userContext = '';
+    if (userId) {
+      const preferences = await getUserPreferences(userId);
+      if (preferences) {
+        userContext = buildUserContext(preferences);
+      }
+    }
+
+    // Build messages array with user context
+    const systemPrompt = userContext 
+      ? `${COACH_SYSTEM_PROMPT}\n\n${userContext}`
+      : COACH_SYSTEM_PROMPT;
+
     const messages: ChatMessage[] = [
-      { role: 'system', content: COACH_SYSTEM_PROMPT },
+      { role: 'system', content: systemPrompt },
       ...conversationHistory,
       { role: 'user', content: userMessage },
     ];
@@ -67,6 +113,12 @@ export async function getCoachResponse(
     
     if (!response) {
       throw new Error('No response from AI');
+    }
+
+    // Save conversation to database if userId is provided
+    if (userId) {
+      await saveConversation(userId, 'user', userMessage);
+      await saveConversation(userId, 'assistant', response);
     }
 
     return { response, error: null };
@@ -90,7 +142,6 @@ export async function getCoachResponse(
     return { response: '', error: errorMessage };
   }
 }
-
 /**
  * Get a quick motivational response (fallback when API is not available)
  */
@@ -108,4 +159,152 @@ export function getFallbackResponse(prompt: string): string {
   } else {
     return 'That\'s a great question! I\'m here to help with training, motivation, nutrition, and mental preparation. Try using one of the quick prompts, or ask me anything specific about your basketball journey! 🏀';
   }
+}
+
+/**
+ * Get user preferences from database
+ */
+export async function getUserPreferences(userId: string): Promise<AICoachPreferences | null> {
+  try {
+    const { data, error } = await supabase
+      .from('ai_coach_preferences')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        // No preferences found - that's ok
+        return null;
+      }
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error fetching user preferences:', error);
+    return null;
+  }
+}
+
+/**
+ * Update or create user preferences
+ */
+export async function updateUserPreferences(
+  userId: string,
+  preferences: Partial<AICoachPreferences>
+): Promise<{ success: boolean; error: string | null }> {
+  try {
+    const { error } = await supabase
+      .from('ai_coach_preferences')
+      .upsert({
+        user_id: userId,
+        ...preferences,
+      });
+
+    if (error) throw error;
+
+    return { success: true, error: null };
+  } catch (error) {
+    console.error('Error updating user preferences:', error);
+    return { success: false, error: error instanceof Error ? error.message : 'Failed to update preferences' };
+  }
+}
+
+/**
+ * Save conversation message to database
+ */
+async function saveConversation(
+  userId: string,
+  role: 'user' | 'assistant',
+  content: string
+): Promise<void> {
+  try {
+    await supabase
+      .from('ai_coach_conversations')
+      .insert({
+        user_id: userId,
+        message_role: role,
+        message_content: content,
+      });
+  } catch (error) {
+    console.error('Error saving conversation:', error);
+    // Don't throw - this is a non-critical operation
+  }
+}
+
+/**
+ * Get recent conversation history from database
+ */
+export async function getConversationHistory(
+  userId: string,
+  limit: number = 10
+): Promise<ChatMessage[]> {
+  try {
+    const { data, error } = await supabase
+      .from('ai_coach_conversations')
+      .select('message_role, message_content')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error) throw error;
+
+    // Reverse to get chronological order and map to ChatMessage format
+    return (data || [])
+      .reverse()
+      .map(msg => ({
+        role: msg.message_role as 'user' | 'assistant',
+        content: msg.message_content,
+      }));
+  } catch (error) {
+    console.error('Error fetching conversation history:', error);
+    return [];
+  }
+}
+
+/**
+ * Build user context string from preferences
+ */
+function buildUserContext(preferences: AICoachPreferences): string {
+  const contextParts: string[] = ['**User Profile:**'];
+
+  if (preferences.primary_goal) {
+    contextParts.push(`- Primary Goal: ${preferences.primary_goal}`);
+  }
+  if (preferences.fitness_level) {
+    contextParts.push(`- Fitness Level: ${preferences.fitness_level}`);
+  }
+  if (preferences.training_days_per_week) {
+    contextParts.push(`- Training Frequency: ${preferences.training_days_per_week} days per week`);
+  }
+  if (preferences.available_equipment) {
+    contextParts.push(`- Available Equipment: ${preferences.available_equipment}`);
+  }
+  if (preferences.shooting_goal) {
+    contextParts.push(`- Shooting Goal: ${preferences.shooting_goal}`);
+  }
+  if (preferences.defense_goal) {
+    contextParts.push(`- Defense Goal: ${preferences.defense_goal}`);
+  }
+  if (preferences.conditioning_goal) {
+    contextParts.push(`- Conditioning Goal: ${preferences.conditioning_goal}`);
+  }
+  if (preferences.nutrition_goal) {
+    contextParts.push(`- Nutrition Goal: ${preferences.nutrition_goal}`);
+  }
+  if (preferences.dietary_restrictions) {
+    contextParts.push(`- Dietary Restrictions: ${preferences.dietary_restrictions}`);
+  }
+  if (preferences.mental_focus_areas) {
+    contextParts.push(`- Mental Focus: ${preferences.mental_focus_areas}`);
+  }
+  if (preferences.injuries_or_limitations) {
+    contextParts.push(`- Injuries/Limitations: ${preferences.injuries_or_limitations}`);
+  }
+  if (preferences.notes) {
+    contextParts.push(`- Additional Notes: ${preferences.notes}`);
+  }
+
+  return contextParts.length > 1 ? contextParts.join('\n') : '';
 }

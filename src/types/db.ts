@@ -229,6 +229,52 @@ export interface ThreadWithDetails {
 }
 
 // =====================================================
+// AI COACH
+// =====================================================
+export interface AICoachPreferences {
+  id: string;
+  user_id: string;
+  primary_goal: string | null;
+  fitness_level: string | null;
+  training_days_per_week: number;
+  available_equipment: string | null;
+  shooting_goal: string | null;
+  defense_goal: string | null;
+  conditioning_goal: string | null;
+  dietary_restrictions: string | null;
+  nutrition_goal: string | null;
+  mental_focus_areas: string | null;
+  injuries_or_limitations: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AICoachConversation {
+  id: string;
+  user_id: string;
+  message_role: 'user' | 'assistant';
+  message_content: string;
+  conversation_context: Record<string, any> | null;
+  created_at: string;
+}
+
+export interface UpdateAICoachPreferencesInput {
+  primary_goal?: string;
+  fitness_level?: string;
+  training_days_per_week?: number;
+  available_equipment?: string;
+  shooting_goal?: string;
+  defense_goal?: string;
+  conditioning_goal?: string;
+  dietary_restrictions?: string;
+  nutrition_goal?: string;
+  mental_focus_areas?: string;
+  injuries_or_limitations?: string;
+  notes?: string;
+}
+
+// =====================================================
 // FORM VALIDATION TYPES
 // =====================================================
 export interface ValidationError {
