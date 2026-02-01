@@ -120,6 +120,8 @@ VITE_OPENAI_API_KEY=your-openai-api-key  # Optional, for AI Coach feature
    - Copy the entire contents of `supabase/mvp_migrations.sql`
    - Paste into the SQL Editor and click "Run"
    - This will create all necessary tables, policies, and functions
+
+   > ⚠️ **IMPORTANT:** If you previously ran older migration files and are experiencing errors like "Could not find a relationship" or "failed to load comments", you need to apply a critical RLS policy fix. See [DATABASE_FIXES.md](DATABASE_FIXES.md) for instructions.
    
 6. Set up Storage:
    - Go to Storage section in Supabase Dashboard

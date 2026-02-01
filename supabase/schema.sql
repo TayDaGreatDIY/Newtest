@@ -10,11 +10,11 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
 -- Create policies
--- Policy: Users can view their own profile
-CREATE POLICY "Users can view own profile"
+-- Policy: All authenticated users can view all profiles (for displaying names in posts, challenges, etc.)
+CREATE POLICY "Authenticated users can view all profiles"
   ON public.profiles
   FOR SELECT
-  USING (auth.uid() = id);
+  USING (auth.uid() IS NOT NULL);
 
 -- Policy: Users can insert their own profile
 CREATE POLICY "Users can insert own profile"
