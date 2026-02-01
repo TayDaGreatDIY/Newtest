@@ -22,6 +22,29 @@ The app is deployed automatically via GitHub Actions on every push to the `main`
 - 👤 User profiles with editable display names
 - 🛡️ Row-level security (RLS) for data protection
 
+### MVP Phase 1 Features
+
+- 🏀 **Courts System**: Browse, search, and create basketball courts
+- 📍 **Check-ins**: Check in to courts to track activity
+- 👑 **Court Champions**: Dynamic champion based on most check-ins in the last 7 days
+- ⚔️ **Challenges**: Create and join challenges at courts
+- 🏆 **Leaderboards**: Real-time leaderboards for each challenge
+- 📊 **User Stats**: Track check-ins, challenges, and wins
+
+## 🏆 Court Champion Logic
+
+The Court Champion system identifies the most active player at each court. Here's how it works:
+
+**MVP Approach**: The court champion is determined by **the user with the most check-ins in the last 7 days** at that specific court.
+
+- **7-Day Rolling Window**: Only check-ins from the past 7 days are counted
+- **Automatic Updates**: Champion status updates automatically as new check-ins are recorded
+- **Per-Court Basis**: Each court has its own champion
+- **Tie Breaking**: In case of equal check-ins, the most recent check-in wins
+- **Display**: Champion badge shows on court detail pages with check-in count
+
+This system encourages consistent participation and rewards regular players at each court.
+
 ## 📋 Prerequisites
 
 - Node.js 18.x or higher
@@ -64,7 +87,9 @@ npm install
    - Create a free account at [https://supabase.com](https://supabase.com)
    - Create a new project
    - Go to Project Settings > API to find your project URL and anon key
-   - Run the SQL in `supabase/schema.sql` in the Supabase SQL Editor (Dashboard > SQL Editor)
+   - Run the SQL migrations in the Supabase SQL Editor (Dashboard > SQL Editor):
+     1. First, run `supabase/schema.sql` (for user profiles)
+     2. Then, run `supabase/mvp_phase1.sql` (for courts, check-ins, and challenges)
 
 4. Create a `.env` file in the root directory with your Supabase credentials:
 ```bash
@@ -268,12 +293,101 @@ Newtest/
 │   ├── main.tsx         # App entry point
 │   └── index.css        # Global styles
 ├── supabase/
-│   └── schema.sql       # Database schema and RLS policies
+│   ├── schema.sql       # Database schema for user profiles
+│   └── mvp_phase1.sql   # Database schema for courts, check-ins, challenges
 ├── index.html           # HTML template
 ├── vite.config.ts       # Vite & PWA configuration
 ├── tailwind.config.js   # Tailwind CSS configuration
 └── package.json         # Dependencies and scripts
 ```
+
+## 🧪 Manual Testing Guide
+
+Follow these steps to test the MVP Phase 1 features:
+
+### 1. Sign Up
+1. Navigate to the app (locally or via GitHub Pages)
+2. Click "Sign Up" or go to `/auth/sign-up`
+3. Enter email, password, and display name
+4. Verify you're redirected to `/app/feed` after signup
+
+### 2. Create a Court
+1. Go to `/app/courts`
+2. Click the "+ Court" button
+3. Fill in court details:
+   - Name (e.g., "Venice Beach Courts")
+   - Location (e.g., "Venice, CA")
+   - Description (optional)
+   - Amenities (select from options)
+   - Max Players (default 10)
+4. Click "Create Court"
+5. Verify the court appears in the list
+6. Click on the court to view details
+
+### 3. Check In to a Court
+1. Go to a court detail page (`/app/courts/:id`)
+2. Click the "Check In" button
+3. Verify you see a success message
+4. Check that the button changes to "Checked in today"
+5. Verify the check-in appears in "Recent Check-ins" section
+6. Try checking in again - should show already checked in
+
+### 4. Verify Court Champion
+1. Check in to the same court multiple times (on different days or with different users)
+2. View the court detail page
+3. Verify the "Court Champion" badge shows:
+   - The user with most check-ins in last 7 days
+   - The check-in count
+4. Test with multiple users to see champion change
+
+### 5. Create a Challenge
+1. Go to a court detail page
+2. Click "+ Challenge" button
+3. Fill in challenge details:
+   - Title (e.g., "Friday Night 3-Point Contest")
+   - Challenge Type (select from options)
+   - Description and Rules
+   - Start and End times
+4. Click "Create Challenge"
+5. Verify challenge appears in the court's challenges list
+6. Click on the challenge to view details
+
+### 6. Join Challenge & Submit Result
+1. Go to a challenge detail page (`/app/challenges/:id`)
+2. Click "Join Challenge & Submit Score" button
+3. Enter your score (numeric value)
+4. Add optional notes
+5. Click "Submit Score"
+6. Verify:
+   - You appear in the leaderboard
+   - Your score is displayed
+   - Leaderboard is sorted by score (highest first)
+   - Top 3 get medals (🥇🥈🥉)
+
+### 7. Browse Challenges
+1. Go to `/app/challenges`
+2. Test filters: All, Active, Upcoming, Ended
+3. Create challenges with different time ranges
+4. Verify filters work correctly
+5. Click on challenges to view details
+
+### 8. View Profile Stats
+1. Go to `/app/profile`
+2. Verify stats are displayed:
+   - Total check-ins
+   - Total challenges participated
+   - Challenges won
+   - Courts championed
+3. If you're a champion at any court, verify the "Champion Status" section appears
+
+### Expected Behaviors
+
+- **Empty States**: Friendly messages when no data exists
+- **Loading States**: Spinners/animations while data loads
+- **Error Handling**: Clear error messages for failures
+- **Responsive Design**: Works on mobile and desktop
+- **Real-time Updates**: Data refreshes after actions
+- **Navigation**: All links and back buttons work correctly
 
 ## 🤝 Contributing
 

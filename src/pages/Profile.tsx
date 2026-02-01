@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GlassCard, SectionHeader, StatPill, GradientButton, Badge } from '../components';
+import { GlassCard, SectionHeader, GradientButton, Badge } from '../components';
 import { useAuth } from '../lib/AuthContext';
+import { getUserStats } from '../lib/stats';
+import type { UserStats } from '../types/db';
 
 export const Profile: React.FC = () => {
   const navigate = useNavigate();
@@ -9,6 +11,24 @@ export const Profile: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(profile?.display_name || '');
   const [saving, setSaving] = useState(false);
+  const [stats, setStats] = useState<UserStats | null>(null);
+  const [loadingStats, setLoadingStats] = useState(true);
+
+  const loadStats = useCallback(async () => {
+    if (!user) return;
+    
+    setLoadingStats(true);
+    const { data } = await getUserStats(user.id);
+    setStats(data);
+    setLoadingStats(false);
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      loadStats();
+    }
+  }, [user, loadStats]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -79,65 +99,86 @@ export const Profile: React.FC = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="text-center">
-            <p className="text-2xl font-bold gradient-primary bg-clip-text text-transparent">24</p>
-            <p className="text-xs text-gray-400">Wins</p>
+        {loadingStats ? (
+          <div className="text-center text-gray-400 py-4">
+            Loading stats...
           </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold gradient-secondary bg-clip-text text-transparent">8</p>
-            <p className="text-xs text-gray-400">Challenges</p>
+        ) : stats ? (
+          <div className="grid grid-cols-4 gap-3">
+            <div className="text-center">
+              <p className="text-2xl font-bold gradient-primary bg-clip-text text-transparent">{stats.challenges_won}</p>
+              <p className="text-xs text-gray-400">Wins</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold gradient-secondary bg-clip-text text-transparent">{stats.total_challenges}</p>
+              <p className="text-xs text-gray-400">Challenges</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold gradient-accent bg-clip-text text-transparent">{stats.total_checkins}</p>
+              <p className="text-xs text-gray-400">Check-ins</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold gradient-primary bg-clip-text text-transparent">{stats.courts_championed}</p>
+              <p className="text-xs text-gray-400">Courts</p>
+            </div>
           </div>
-          <div className="text-center">
-            <p className="text-2xl font-bold gradient-accent bg-clip-text text-transparent">156</p>
-            <p className="text-xs text-gray-400">Points</p>
+        ) : (
+          <div className="grid grid-cols-3 gap-3">
+            <div className="text-center">
+              <p className="text-2xl font-bold gradient-primary bg-clip-text text-transparent">0</p>
+              <p className="text-xs text-gray-400">Wins</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold gradient-secondary bg-clip-text text-transparent">0</p>
+              <p className="text-xs text-gray-400">Challenges</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold gradient-accent bg-clip-text text-transparent">0</p>
+              <p className="text-xs text-gray-400">Check-ins</p>
+            </div>
           </div>
-        </div>
+        )}
       </GlassCard>
 
-      {/* Quick Stats */}
-      <SectionHeader title="Performance Stats" className="mb-4" />
+      {/* Quick Actions */}
+      <SectionHeader title="Quick Actions" className="mb-4" />
       <div className="grid grid-cols-2 gap-3 mb-6">
-        <StatPill label="3PT %" value="42%" icon="🎯" variant="primary" />
-        <StatPill label="FT %" value="85%" icon="🏀" variant="secondary" />
-        <StatPill label="Games" value="67" icon="🏆" variant="accent" />
-        <StatPill label="Hours" value="142" icon="⏱️" variant="glass" />
-      </div>
-
-      {/* Achievements */}
-      <SectionHeader title="Recent Achievements" className="mb-4" />
-      <div className="space-y-3 mb-6">
-        <GlassCard className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full gradient-accent flex items-center justify-center text-2xl">
-            🏆
-          </div>
-          <div className="flex-1">
-            <h3 className="font-bold">Court Champion</h3>
-            <p className="text-xs text-gray-400">Won 10 consecutive games</p>
-          </div>
-          <Badge variant="accent">New</Badge>
+        <GlassCard 
+          className="text-center cursor-pointer hover:bg-white/10 transition-colors"
+          onClick={() => navigate('/app/courts')}
+        >
+          <div className="text-3xl mb-2">🏀</div>
+          <p className="text-sm font-semibold">Browse Courts</p>
         </GlassCard>
-
-        <GlassCard className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full gradient-primary flex items-center justify-center text-2xl">
-            🔥
-          </div>
-          <div className="flex-1">
-            <h3 className="font-bold">Hot Streak</h3>
-            <p className="text-xs text-gray-400">5 days in a row</p>
-          </div>
-        </GlassCard>
-
-        <GlassCard className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full gradient-secondary flex items-center justify-center text-2xl">
-            🎯
-          </div>
-          <div className="flex-1">
-            <h3 className="font-bold">Sharpshooter</h3>
-            <p className="text-xs text-gray-400">50+ three-pointers made</p>
-          </div>
+        <GlassCard 
+          className="text-center cursor-pointer hover:bg-white/10 transition-colors"
+          onClick={() => navigate('/app/challenges')}
+        >
+          <div className="text-3xl mb-2">⚔️</div>
+          <p className="text-sm font-semibold">Challenges</p>
         </GlassCard>
       </div>
+
+      {/* Champion Status */}
+      {stats && stats.courts_championed > 0 && (
+        <>
+          <SectionHeader title="Champion Status" className="mb-4" />
+          <GlassCard className="mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center text-2xl animate-pulse">
+                👑
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold">Court Champion</h3>
+                <p className="text-xs text-gray-400">
+                  Champion at {stats.courts_championed} court{stats.courts_championed !== 1 ? 's' : ''}
+                </p>
+              </div>
+              <Badge variant="accent">Active</Badge>
+            </div>
+          </GlassCard>
+        </>
+      )}
 
       {/* Settings */}
       <SectionHeader title="Settings" className="mb-4" />

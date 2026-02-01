@@ -1,36 +1,112 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { GlassCard, SectionHeader, GradientButton, Badge, EmptyState } from '../components';
-import { mockChallenges, type Challenge } from '../data/mockChallenges';
+import React, { useState, useEffect } from 'react';
+import { 
+  SectionHeader, 
+  GradientButton, 
+  EmptyState, 
+  ChallengeCard,
+  CreateChallengeModal 
+} from '../components';
+import { getChallenges, createChallenge } from '../lib/challenges';
+import { getCourts } from '../lib/courts';
+import type { ChallengeWithDetails, CreateChallengeInput, Court } from '../types/db';
 
 export const Challenges: React.FC = () => {
-  const navigate = useNavigate();
-  const [challenges] = useState<Challenge[]>(mockChallenges);
-  const [filter, setFilter] = useState<'all' | 'open' | 'accepted' | 'completed'>('all');
+  const [challenges, setChallenges] = useState<ChallengeWithDetails[]>([]);
+  const [courts, setCourts] = useState<Court[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [filter, setFilter] = useState<'all' | 'active' | 'upcoming' | 'ended'>('all');
 
-  const filteredChallenges = challenges.filter(
-    challenge => filter === 'all' || challenge.status === filter
-  );
+  useEffect(() => {
+    loadData();
+  }, []);
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'open': return <Badge variant="accent">Open</Badge>;
-      case 'accepted': return <Badge variant="secondary">Accepted</Badge>;
-      case 'in-progress': return <Badge variant="primary">In Progress</Badge>;
-      case 'completed': return <Badge variant="glass">Completed</Badge>;
-      default: return null;
+  const loadData = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const [challengesResult, courtsResult] = await Promise.all([
+        getChallenges(),
+        getCourts()
+      ]);
+
+      if (challengesResult.error) throw new Error(challengesResult.error.message);
+      if (courtsResult.error) throw new Error(courtsResult.error.message);
+
+      setChallenges(challengesResult.data || []);
+      setCourts(courtsResult.data || []);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load challenges');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getChallengeEmoji = (type: string) => {
-    switch (type) {
-      case '1v1': return '🥊';
-      case '3v3': return '👥';
-      case 'HORSE': return '🐴';
-      case 'Shooting Contest': return '🎯';
-      default: return '⚔️';
+  const handleCreateChallenge = async (input: CreateChallengeInput) => {
+    const { error } = await createChallenge(input);
+    if (error) {
+      throw new Error(error.message);
     }
+    await loadData();
   };
+
+  const isActive = (challenge: ChallengeWithDetails) => {
+    const now = new Date();
+    const startTime = new Date(challenge.start_time);
+    const endTime = challenge.end_time ? new Date(challenge.end_time) : null;
+    return startTime <= now && (!endTime || endTime >= now);
+  };
+
+  const isUpcoming = (challenge: ChallengeWithDetails) => {
+    const now = new Date();
+    const startTime = new Date(challenge.start_time);
+    return startTime > now;
+  };
+
+  const isEnded = (challenge: ChallengeWithDetails) => {
+    if (!challenge.end_time) return false;
+    const now = new Date();
+    const endTime = new Date(challenge.end_time);
+    return endTime < now;
+  };
+
+  const filteredChallenges = challenges.filter(challenge => {
+    if (filter === 'all') return true;
+    if (filter === 'active') return isActive(challenge);
+    if (filter === 'upcoming') return isUpcoming(challenge);
+    if (filter === 'ended') return isEnded(challenge);
+    return true;
+  });
+
+  if (loading) {
+    return (
+      <div className="min-h-screen px-4 py-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-4xl mb-4 animate-bounce">🎯</div>
+          <p className="text-gray-400">Loading challenges...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen px-4 py-6">
+        <div className="glass rounded-xl p-6 text-center">
+          <div className="text-4xl mb-4">⚠️</div>
+          <p className="text-red-500 mb-4">{error}</p>
+          <button 
+            onClick={loadData}
+            className="glass px-4 py-2 rounded-xl hover:bg-white/10 transition-all"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen px-4 py-6">
@@ -38,7 +114,17 @@ export const Challenges: React.FC = () => {
         title="Challenges" 
         subtitle="Compete and prove your skills"
         action={
-          <GradientButton size="sm" variant="primary" onClick={() => alert('Create Challenge flow coming soon!')}>
+          <GradientButton 
+            size="sm" 
+            variant="primary" 
+            onClick={() => {
+              if (courts.length === 0) {
+                alert('Please create a court first!');
+              } else {
+                setIsCreateModalOpen(true);
+              }
+            }}
+          >
             + Create
           </GradientButton>
         }
@@ -46,10 +132,10 @@ export const Challenges: React.FC = () => {
 
       {/* Filter Tabs */}
       <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-        {['all', 'open', 'accepted', 'completed'].map((status) => (
+        {(['all', 'active', 'upcoming', 'ended'] as const).map((status) => (
           <button
             key={status}
-            onClick={() => setFilter(status as typeof filter)}
+            onClick={() => setFilter(status)}
             className={`px-4 py-2 rounded-full text-sm whitespace-nowrap transition-all ${
               filter === status
                 ? 'gradient-primary text-white'
@@ -61,107 +147,35 @@ export const Challenges: React.FC = () => {
         ))}
       </div>
 
-      {/* Challenge Types Quick Select */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        <GlassCard className="text-center cursor-pointer hover:bg-white/10 transition-colors">
-          <div className="text-3xl mb-2">🥊</div>
-          <p className="text-xs font-semibold">1v1</p>
-        </GlassCard>
-        <GlassCard className="text-center cursor-pointer hover:bg-white/10 transition-colors">
-          <div className="text-3xl mb-2">👥</div>
-          <p className="text-xs font-semibold">3v3</p>
-        </GlassCard>
-        <GlassCard className="text-center cursor-pointer hover:bg-white/10 transition-colors">
-          <div className="text-3xl mb-2">🐴</div>
-          <p className="text-xs font-semibold">HORSE</p>
-        </GlassCard>
-        <GlassCard className="text-center cursor-pointer hover:bg-white/10 transition-colors">
-          <div className="text-3xl mb-2">🎯</div>
-          <p className="text-xs font-semibold">Shooting</p>
-        </GlassCard>
-      </div>
-
       {/* Challenges List */}
       {filteredChallenges.length === 0 ? (
         <EmptyState 
-          icon="⚔️"
-          title="No challenges found"
-          description="Create a new challenge or adjust your filters"
-          actionLabel="Create Challenge"
-          onAction={() => alert('Create Challenge flow coming soon!')}
+          icon="🎯"
+          title={filter === 'all' ? "No challenges yet" : `No ${filter} challenges`}
+          description={filter === 'all' ? "Create a challenge to get started!" : "Try a different filter"}
+          actionLabel={filter === 'all' && courts.length > 0 ? "Create Challenge" : undefined}
+          onAction={filter === 'all' && courts.length > 0 ? () => setIsCreateModalOpen(true) : undefined}
         />
       ) : (
         <div className="space-y-4">
           {filteredChallenges.map(challenge => (
-            <GlassCard 
+            <ChallengeCard 
               key={challenge.id}
-              onClick={() => navigate(`/app/challenges/${challenge.id}`)}
-              className="hover:scale-[1.02] cursor-pointer"
-            >
-              {/* Header */}
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-2xl">{getChallengeEmoji(challenge.type)}</span>
-                    <Badge variant="glass">{challenge.type}</Badge>
-                    {getStatusBadge(challenge.status)}
-                  </div>
-                  <h3 className="text-lg font-bold mb-1">{challenge.title}</h3>
-                  <p className="text-sm text-gray-400">{challenge.description}</p>
-                </div>
-              </div>
-
-              {/* Participants */}
-              <div className="flex items-center gap-3 mb-3 p-3 rounded-xl bg-white/5">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center text-lg">
-                    {challenge.creator.avatar}
-                  </div>
-                  <span className="text-sm font-semibold">{challenge.creator.name}</span>
-                </div>
-                
-                <span className="text-gray-400">vs</span>
-                
-                {challenge.opponent ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full gradient-secondary flex items-center justify-center text-lg">
-                      {challenge.opponent.avatar}
-                    </div>
-                    <span className="text-sm font-semibold">{challenge.opponent.name}</span>
-                  </div>
-                ) : (
-                  <span className="text-sm text-gray-400 italic">Open Spot</span>
-                )}
-              </div>
-
-              {/* Details */}
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-4">
-                  <span className="text-gray-400">📍 {challenge.location}</span>
-                  <span className="text-gray-400">🕐 {challenge.dateTime}</span>
-                </div>
-                {challenge.stakes && (
-                  <span className="text-xs px-2 py-1 rounded-full bg-yellow-500/20 text-yellow-400">
-                    💰 {challenge.stakes}
-                  </span>
-                )}
-              </div>
-
-              {/* Score (if completed) */}
-              {challenge.status === 'completed' && challenge.score && (
-                <div className="mt-3 pt-3 border-t border-white/10">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-400">Final Score:</span>
-                    <span className="text-lg font-bold">
-                      {challenge.score.player1} - {challenge.score.player2}
-                      {challenge.score.confirmed && <span className="text-green-400 ml-2">✓</span>}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </GlassCard>
+              challenge={challenge}
+              showCourtName={true}
+            />
           ))}
         </div>
+      )}
+
+      {/* Create Challenge Modal */}
+      {courts.length > 0 && (
+        <CreateChallengeModal 
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSubmit={handleCreateChallenge}
+          courtId={courts[0]?.id}
+        />
       )}
     </div>
   );

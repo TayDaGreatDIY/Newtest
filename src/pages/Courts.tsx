@@ -1,41 +1,92 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { GlassCard, SectionHeader, StatPill, EmptyState } from '../components';
-import { mockCourts, type Court } from '../data/mockCourts';
+import React, { useState, useEffect, useCallback } from 'react';
+import { 
+  SectionHeader, 
+  EmptyState, 
+  CourtCard, 
+  CreateCourtModal, 
+  GradientButton 
+} from '../components';
+import { getCourtsWithChampions, createCourt } from '../lib/courts';
+import type { CourtWithChampion, CreateCourtInput } from '../types/db';
 
 export const Courts: React.FC = () => {
-  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const [courts] = useState<Court[]>(mockCourts);
+  const [courts, setCourts] = useState<CourtWithChampion[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  const loadCourts = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await getCourtsWithChampions();
+    if (error) {
+      setError(error.message);
+    } else {
+      setCourts(data || []);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadCourts();
+  }, [loadCourts]);
+
+  const handleCreateCourt = async (input: CreateCourtInput) => {
+    const { error } = await createCourt(input);
+    if (error) {
+      throw new Error(error.message);
+    }
+    await loadCourts();
+  };
 
   const filteredCourts = courts.filter(court => 
     court.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     court.location.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'available': return 'text-green-400';
-      case 'busy': return 'text-yellow-400';
-      case 'full': return 'text-red-400';
-      default: return 'text-gray-400';
-    }
-  };
+  if (loading) {
+    return (
+      <div className="min-h-screen px-4 py-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-4xl mb-4 animate-bounce">🏀</div>
+          <p className="text-gray-400">Loading courts...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const getStatusEmoji = (status: string) => {
-    switch (status) {
-      case 'available': return '✅';
-      case 'busy': return '⚠️';
-      case 'full': return '🔴';
-      default: return '⚪';
-    }
-  };
+  if (error) {
+    return (
+      <div className="min-h-screen px-4 py-6">
+        <div className="glass rounded-xl p-6 text-center">
+          <div className="text-4xl mb-4">⚠️</div>
+          <p className="text-red-500 mb-4">{error}</p>
+          <button 
+            onClick={loadCourts}
+            className="glass px-4 py-2 rounded-xl hover:bg-white/10 transition-all"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen px-4 py-6">
       <SectionHeader 
         title="Courts" 
         subtitle="Find and check in to nearby courts"
+        action={
+          <GradientButton 
+            size="sm" 
+            variant="primary"
+            onClick={() => setIsCreateModalOpen(true)}
+          >
+            + Court
+          </GradientButton>
+        }
       />
 
       {/* Search Bar */}
@@ -49,90 +100,32 @@ export const Courts: React.FC = () => {
         />
       </div>
 
-      {/* Location Filter (Placeholder) */}
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-        <button className="glass px-4 py-2 rounded-full text-sm whitespace-nowrap hover:bg-white/10 transition-colors">
-          📍 Near Me
-        </button>
-        <button className="glass px-4 py-2 rounded-full text-sm whitespace-nowrap hover:bg-white/10 transition-colors">
-          ⭐ Popular
-        </button>
-        <button className="glass px-4 py-2 rounded-full text-sm whitespace-nowrap hover:bg-white/10 transition-colors">
-          🏢 Indoor
-        </button>
-        <button className="glass px-4 py-2 rounded-full text-sm whitespace-nowrap hover:bg-white/10 transition-colors">
-          🌳 Outdoor
-        </button>
-      </div>
-
       {/* Courts List */}
       {filteredCourts.length === 0 ? (
         <EmptyState 
           icon="🏀"
-          title="No courts found"
-          description="Try adjusting your search or location filters"
+          title={searchQuery ? "No courts found" : "No courts yet"}
+          description={searchQuery ? "Try adjusting your search" : "Be the first to create a court!"}
+          actionLabel={!searchQuery ? "Create Court" : undefined}
+          onAction={!searchQuery ? () => setIsCreateModalOpen(true) : undefined}
         />
       ) : (
         <div className="space-y-4">
           {filteredCourts.map(court => (
-            <GlassCard 
+            <CourtCard 
               key={court.id}
-              onClick={() => navigate(`/app/courts/${court.id}`)}
-              className="hover:scale-[1.02] cursor-pointer"
-            >
-              {/* Header */}
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold mb-1">{court.name}</h3>
-                  <p className="text-sm text-gray-400 flex items-center gap-1">
-                    📍 {court.location}
-                  </p>
-                </div>
-                <div className={`flex items-center gap-1 text-sm ${getStatusColor(court.status)}`}>
-                  <span>{getStatusEmoji(court.status)}</span>
-                  <span className="capitalize">{court.status}</span>
-                </div>
-              </div>
-
-              {/* Stats */}
-              <div className="flex gap-2 mb-3 flex-wrap">
-                <StatPill 
-                  label="Distance" 
-                  value={court.distance} 
-                  icon="🚶"
-                  variant="glass"
-                  className="text-xs"
-                />
-                <StatPill 
-                  label="Players" 
-                  value={`${court.currentPlayers}/${court.maxPlayers}`} 
-                  icon="👥"
-                  variant="glass"
-                  className="text-xs"
-                />
-                {court.queue.length > 0 && (
-                  <StatPill 
-                    label="Queue" 
-                    value={court.queue.length} 
-                    icon="⏱️"
-                    variant="glass"
-                    className="text-xs"
-                  />
-                )}
-              </div>
-
-              {/* Amenities */}
-              <div className="flex gap-2 flex-wrap">
-                {court.amenities.slice(0, 3).map((amenity, idx) => (
-                  <span key={idx} className="text-xs px-2 py-1 rounded-full bg-white/5 text-gray-400">
-                    {amenity}
-                  </span>
-                ))}
-              </div>
-            </GlassCard>
+              court={court}
+            />
           ))}
         </div>
       )}
+
+      {/* Create Court Modal */}
+      <CreateCourtModal 
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSubmit={handleCreateCourt}
+      />
     </div>
   );
 };
