@@ -149,7 +149,10 @@ CREATE POLICY "Users can delete their own comments"
 
 -- Function to update post counts when like is added/removed
 CREATE OR REPLACE FUNCTION public.update_post_likes_count()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
 BEGIN
   IF TG_OP = 'INSERT' THEN
     UPDATE public.posts
@@ -163,7 +166,7 @@ BEGIN
     RETURN OLD;
   END IF;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 -- Trigger for like count
 DROP TRIGGER IF EXISTS on_post_like_change ON public.post_likes;
@@ -174,7 +177,10 @@ CREATE TRIGGER on_post_like_change
 
 -- Function to update post counts when comment is added/removed
 CREATE OR REPLACE FUNCTION public.update_post_comments_count()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
 BEGIN
   IF TG_OP = 'INSERT' THEN
     UPDATE public.posts
@@ -188,7 +194,7 @@ BEGIN
     RETURN OLD;
   END IF;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 -- Trigger for comment count
 DROP TRIGGER IF EXISTS on_post_comment_change ON public.post_comments;
@@ -233,7 +239,11 @@ RETURNS TABLE(
   user_id UUID,
   user_display_name TEXT,
   is_liked_by_me BOOLEAN
-) AS $$
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
 BEGIN
   RETURN QUERY
   SELECT 
@@ -258,7 +268,7 @@ BEGIN
   LIMIT limit_count
   OFFSET offset_count;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- =====================================================
 -- 6. SUPABASE STORAGE BUCKET (Run in Dashboard)

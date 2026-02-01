@@ -226,7 +226,11 @@ RETURNS TABLE(
   champion_id UUID,
   champion_name TEXT,
   champion_checkin_count BIGINT
-) AS $$
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
 BEGIN
   RETURN QUERY
   SELECT 
@@ -247,7 +251,7 @@ BEGIN
   LEFT JOIN public.profiles p ON cc.champion_id = p.id
   WHERE c.id = court_uuid;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- =====================================================
 -- MIGRATION COMPLETE
