@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GlassCard, SectionHeader, EmptyState } from '../components';
+import { GlassCard, SectionHeader, EmptyState, GradientButton, NewMessageModal } from '../components';
 import { getUserThreads, subscribeToThreadUpdates } from '../lib/messages';
 import type { ThreadWithDetails } from '../types/db';
 
@@ -9,6 +9,7 @@ export const Messages: React.FC = () => {
   const [threads, setThreads] = useState<ThreadWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isNewMessageOpen, setIsNewMessageOpen] = useState(false);
 
   const loadThreads = useCallback(async () => {
     setLoading(true);
@@ -59,6 +60,15 @@ export const Messages: React.FC = () => {
         <SectionHeader 
           title="Messages" 
           subtitle="Your conversations"
+          action={
+            <GradientButton 
+              size="sm" 
+              variant="primary" 
+              onClick={() => setIsNewMessageOpen(true)}
+            >
+              + New
+            </GradientButton>
+          }
         />
         <div className="flex items-center justify-center py-12">
           <div className="text-gray-400">Loading messages...</div>
@@ -73,6 +83,15 @@ export const Messages: React.FC = () => {
         <SectionHeader 
           title="Messages" 
           subtitle="Your conversations"
+          action={
+            <GradientButton 
+              size="sm" 
+              variant="primary" 
+              onClick={() => setIsNewMessageOpen(true)}
+            >
+              + New
+            </GradientButton>
+          }
         />
         <div className="flex items-center justify-center py-12">
           <div className="text-red-400">Error: {error}</div>
@@ -86,6 +105,15 @@ export const Messages: React.FC = () => {
       <SectionHeader 
         title="Messages" 
         subtitle="Your conversations"
+        action={
+          <GradientButton 
+            size="sm" 
+            variant="primary" 
+            onClick={() => setIsNewMessageOpen(true)}
+          >
+            + New
+          </GradientButton>
+        }
       />
 
       {threads.length === 0 ? (
@@ -93,6 +121,8 @@ export const Messages: React.FC = () => {
           icon="💬"
           title="No messages yet"
           description="Start a conversation with other players"
+          actionLabel="New Message"
+          onAction={() => setIsNewMessageOpen(true)}
         />
       ) : (
         <div className="space-y-3">
@@ -139,6 +169,12 @@ export const Messages: React.FC = () => {
           ))}
         </div>
       )}
+
+      {/* New Message Modal */}
+      <NewMessageModal 
+        isOpen={isNewMessageOpen}
+        onClose={() => setIsNewMessageOpen(false)}
+      />
     </div>
   );
 };
