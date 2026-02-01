@@ -1,11 +1,6 @@
 import React, { useState } from 'react';
 import { GlassCard, SectionHeader, GradientButton } from '../components';
-
-interface ChatMessage {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-}
+import { getCoachResponse, getFallbackResponse, type ChatMessage } from '../lib/aiCoach';
 
 const quickPrompts = [
   { emoji: '💪', label: 'Motivation', prompt: 'Give me some motivation for today\'s workout' },
@@ -17,52 +12,56 @@ const quickPrompts = [
 export const ThinkingCorner: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
-      id: '1',
       role: 'assistant',
       content: 'Hey there! 👋 I\'m your AI Basketball Coach. I\'m here to help you with training tips, motivation, nutrition advice, and mental preparation. What would you like to work on today?',
     },
   ]);
   const [input, setInput] = useState('');
-  const messageIdRef = React.useRef(2);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSendMessage = (message?: string) => {
+  const handleSendMessage = async (message?: string) => {
     const messageToSend = message || input;
-    if (!messageToSend.trim()) return;
+    if (!messageToSend.trim() || loading) return;
 
     // Add user message
     const userMessage: ChatMessage = {
-      id: String(messageIdRef.current++),
       role: 'user',
       content: messageToSend,
     };
-    setMessages([...messages, userMessage]);
-
-    // Simulate AI response
-    setTimeout(() => {
-      const aiResponse: ChatMessage = {
-        id: String(messageIdRef.current++),
-        role: 'assistant',
-        content: getAIResponse(messageToSend),
-      };
-      setMessages(prev => [...prev, aiResponse]);
-    }, 1000);
-
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
     setInput('');
-  };
+    setLoading(true);
+    setError(null);
 
-  const getAIResponse = (prompt: string): string => {
-    const lowerPrompt = prompt.toLowerCase();
-    
-    if (lowerPrompt.includes('motivation')) {
-      return '🔥 You\'ve got this! Remember, every champion was once a contender who refused to give up. Your dedication today builds the success of tomorrow. Let\'s make today count! 💪';
-    } else if (lowerPrompt.includes('workout') || lowerPrompt.includes('training')) {
-      return '🏀 Here\'s a great workout plan:\n\n1. Warm-up: 10 mins dynamic stretching\n2. Ball handling drills: 15 mins\n3. Shooting practice: 20 mins (focus on form)\n4. Defensive slides: 10 mins\n5. 3-point practice: 15 mins\n6. Cool down: 5 mins stretching\n\nRemember to stay hydrated! 💧';
-    } else if (lowerPrompt.includes('nutrition') || lowerPrompt.includes('eat')) {
-      return '🥗 For optimal performance, focus on:\n\n• Lean proteins (chicken, fish, tofu)\n• Complex carbs (brown rice, quinoa, sweet potatoes)\n• Healthy fats (avocado, nuts, olive oil)\n• Plenty of fruits and vegetables\n• Stay hydrated with water!\n\nEat 2-3 hours before training for best results. 💪';
-    } else if (lowerPrompt.includes('mental') || lowerPrompt.includes('mindset')) {
-      return '🧠 Mental preparation is key! Try these techniques:\n\n1. Visualization: Picture yourself succeeding\n2. Deep breathing: 4-7-8 technique\n3. Positive affirmations: "I am prepared and capable"\n4. Focus on process, not outcome\n5. Stay present in the moment\n\nYou\'re mentally stronger than you think! 🌟';
+    // Get conversation history (last 5 messages for context)
+    const conversationHistory = updatedMessages.slice(-5);
+
+    // Get AI response
+    const { response, error: apiError } = await getCoachResponse(
+      messageToSend,
+      conversationHistory
+    );
+
+    setLoading(false);
+
+    if (apiError) {
+      // Show error and use fallback
+      setError(apiError);
+      const fallbackResponse = getFallbackResponse(messageToSend);
+      const aiResponse: ChatMessage = {
+        role: 'assistant',
+        content: fallbackResponse,
+      };
+      setMessages([...updatedMessages, aiResponse]);
     } else {
-      return 'That\'s a great question! I\'m here to help with training, motivation, nutrition, and mental preparation. Try using one of the quick prompts below, or ask me anything specific about your basketball journey! 🏀';
+      // Add AI response
+      const aiResponse: ChatMessage = {
+        role: 'assistant',
+        content: response,
+      };
+      setMessages([...updatedMessages, aiResponse]);
     }
   };
 
@@ -78,6 +77,16 @@ export const ThinkingCorner: React.FC = () => {
           title="Thinking Corner" 
           subtitle="Your AI Basketball Coach"
         />
+        {error && (
+          <div className="mt-4 p-3 rounded-xl bg-yellow-500/10 border border-yellow-500/30">
+            <p className="text-sm text-yellow-400">
+              ⚠️ {error}
+            </p>
+            <p className="text-xs text-gray-400 mt-1">
+              Using fallback responses. Add your OpenAI API key to .env for full AI features.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Quick Prompts */}
@@ -88,7 +97,7 @@ export const ThinkingCorner: React.FC = () => {
             <GlassCard 
               key={idx}
               className="text-center cursor-pointer hover:bg-white/10 transition-colors"
-              onClick={() => handleQuickPrompt(prompt.prompt)}
+              onClick={() => !loading && handleQuickPrompt(prompt.prompt)}
             >
               <div className="text-3xl mb-2">{prompt.emoji}</div>
               <p className="text-xs font-semibold">{prompt.label}</p>
@@ -99,9 +108,9 @@ export const ThinkingCorner: React.FC = () => {
 
       {/* Messages */}
       <div className="flex-1 px-4 pb-4 space-y-4 overflow-y-auto">
-        {messages.map((message) => (
+        {messages.map((message, idx) => (
           <div 
-            key={message.id}
+            key={idx}
             className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div className={`flex gap-2 max-w-[85%] ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
@@ -125,6 +134,18 @@ export const ThinkingCorner: React.FC = () => {
             </div>
           </div>
         ))}
+        {loading && (
+          <div className="flex justify-start">
+            <div className="flex gap-2 max-w-[85%]">
+              <div className="w-10 h-10 rounded-full gradient-accent flex items-center justify-center text-xl flex-shrink-0">
+                🤖
+              </div>
+              <div className="glass rounded-2xl px-4 py-3">
+                <p className="text-sm text-gray-400">Thinking...</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Input */}
@@ -135,16 +156,17 @@ export const ThinkingCorner: React.FC = () => {
             placeholder="Ask your AI coach anything..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+            onKeyPress={(e) => e.key === 'Enter' && !loading && handleSendMessage()}
+            disabled={loading}
             className="flex-1 px-4 py-3 rounded-2xl glass focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all"
           />
           <GradientButton 
             variant="primary" 
             onClick={() => handleSendMessage()}
-            disabled={!input.trim()}
+            disabled={!input.trim() || loading}
             className="rounded-2xl"
           >
-            Send
+            {loading ? 'Sending...' : 'Send'}
           </GradientButton>
         </div>
       </div>
