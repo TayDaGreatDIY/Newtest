@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { 
   SectionHeader, 
   EmptyState, 
@@ -11,7 +10,6 @@ import { getCourtsWithChampions, createCourt } from '../lib/courts';
 import type { CourtWithChampion, CreateCourtInput } from '../types/db';
 
 export const Courts: React.FC = () => {
-  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [courts, setCourts] = useState<CourtWithChampion[]>([]);
   const [loading, setLoading] = useState(true);

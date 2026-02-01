@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { GradientButton } from './GradientButton';
 
 interface CheckInButtonProps {
-  courtId: string;
   courtName: string;
   hasCheckedIn: boolean;
   onCheckIn: () => Promise<void>;
@@ -10,7 +9,6 @@ interface CheckInButtonProps {
 }
 
 export const CheckInButton: React.FC<CheckInButtonProps> = ({
-  courtId,
   courtName,
   hasCheckedIn,
   onCheckIn,

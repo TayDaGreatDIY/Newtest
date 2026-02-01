@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { 
   SectionHeader, 
   GradientButton, 
@@ -12,7 +11,6 @@ import { getCourts } from '../lib/courts';
 import type { ChallengeWithDetails, CreateChallengeInput, Court } from '../types/db';
 
 export const Challenges: React.FC = () => {
-  const navigate = useNavigate();
   const [challenges, setChallenges] = useState<ChallengeWithDetails[]>([]);
   const [courts, setCourts] = useState<Court[]>([]);
   const [loading, setLoading] = useState(true);

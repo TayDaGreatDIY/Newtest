@@ -165,7 +165,6 @@ export const CourtDetail: React.FC = () => {
 
       {/* Check-In Button */}
       <CheckInButton 
-        courtId={court.id}
         courtName={court.name}
         hasCheckedIn={hasCheckedIn}
         onCheckIn={handleCheckIn}
