@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Chat Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #1a1a1a;
+      color: white;
+    }
+    .info-box {
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 10px;
+      border: 2px solid;
+    }
+    .info-box.blue {
+      background: rgba(59, 130, 246, 0.1);
+      border-color: rgba(59, 130, 246, 0.3);
+      color: #60a5fa;
+    }
+    .info-box.green {
+      background: rgba(34, 197, 94, 0.1);
+      border-color: rgba(34, 197, 94, 0.3);
+      color: #4ade80;
+    }
+    h1 { color: #60a5fa; }
+    h2 { color: #a78bfa; }
+    code {
+      background: rgba(255,255,255,0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    ul { margin: 10px 0; }
+    li { margin: 8px 0; }
+  </style>
+</head>
+<body>
+  <h1>✅ OpenAI API Key Error - FIXED!</h1>
+  
+  <div class="info-box green">
+    <h2>Problem Fixed:</h2>
+    <p>The error message <code>OpenAI API key is not configured. Please add VITE_OPENAI_API_KEY to your .env file.</code> no longer appears when the API key is not configured.</p>
+  </div>
+
+  <div class="info-box blue">
+    <h2>Changes Made:</h2>
+    <ul>
+      <li><strong>Graceful Fallback:</strong> When the OpenAI API key is not configured, the AI Coach now seamlessly uses enhanced fallback responses without showing an error.</li>
+      <li><strong>Better User Experience:</strong> Users see a friendly "Basic Coach Mode" info banner instead of a confusing error message.</li>
+      <li><strong>Enhanced Fallback Responses:</strong> The fallback responses now include more comprehensive and detailed coaching advice covering:
+        <ul>
+          <li>Motivation and encouragement</li>
+          <li>Detailed workout plans with proper structure</li>
+          <li>Comprehensive nutrition guidance (pre-workout, post-workout, daily tips)</li>
+          <li>Mental preparation techniques</li>
+          <li>Shooting improvement tips</li>
+          <li>Defense training</li>
+          <li>Vertical jump training</li>
+        </ul>
+      </li>
+      <li><strong>Optional API Key:</strong> The OpenAI API key is now truly optional - the app works fully without it using the basic coach responses.</li>
+      <li><strong>Error Handling:</strong> When API errors occur (rate limits, quota exceeded), the app automatically switches to fallback responses with helpful messages.</li>
+    </ul>
+  </div>
+
+  <div class="info-box blue">
+    <h2>How It Works Now:</h2>
+    <ul>
+      <li><strong>Without API Key:</strong> Shows "Basic Coach Mode" info banner and uses comprehensive fallback responses</li>
+      <li><strong>With API Key:</strong> Uses full AI-powered personalized coaching from OpenAI</li>
+      <li><strong>On API Errors:</strong> Gracefully falls back to basic responses with a helpful warning message</li>
+    </ul>
+  </div>
+
+  <div class="info-box green">
+    <h2>Benefits:</h2>
+    <ul>
+      <li>✅ No more confusing error messages for users</li>
+      <li>✅ AI Coach feature works out of the box without requiring API key configuration</li>
+      <li>✅ Users can start using the app immediately</li>
+      <li>✅ Optional upgrade path to full AI features by adding API key</li>
+      <li>✅ Better fallback content provides real value even without API</li>
+    </ul>
+  </div>
+
+  <p style="margin-top: 30px; text-align: center; color: #888;">
+    To test the AI Coach, navigate to <code>/app/thinking-corner</code> in the app after signing in.
+  </p>
+</body>
+</html>

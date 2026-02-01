@@ -283,3 +283,66 @@ The AI Coach now provides a truly personalized, adaptive coaching experience tha
 - Builds a relationship with each athlete
 
 Users can freely chat with the AI using the existing chat box, and the AI will provide increasingly personalized guidance based on their profile and conversation history.
+
+## ✅ NEW: Optional OpenAI API Key Configuration (January 2026)
+
+### Problem Fixed
+Previously, when the OpenAI API key was not configured, users would see a confusing error message:
+> "OpenAI API key is not configured. Please add VITE_OPENAI_API_KEY to your .env file."
+
+This made the AI Coach appear broken and unusable without the API key.
+
+### Solution
+The AI Coach now works perfectly **with or without** an OpenAI API key:
+
+#### Without API Key (Basic Coach Mode)
+- ✅ No error messages displayed
+- ✅ Shows friendly "Basic Coach Mode" info banner
+- ✅ Uses comprehensive pre-programmed coaching responses
+- ✅ Covers 10+ coaching topics with detailed guidance
+- ✅ Works immediately out of the box
+
+#### With API Key (Full AI Mode)
+- ✅ Full OpenAI GPT-3.5-turbo powered responses
+- ✅ Personalized coaching based on user preferences
+- ✅ Contextual responses based on conversation history
+- ✅ Adaptive learning from user interactions
+
+### Enhanced Fallback Responses
+The basic coach mode now includes comprehensive responses for:
+- **Motivation & Encouragement** - Detailed motivational messages
+- **Basketball Workout Plans** - Complete training programs with warm-up, skill work, and conditioning
+- **Nutrition & Meal Planning** - Pre-workout, post-workout, and daily nutrition guidance
+- **Mental Preparation** - Visualization, breathing exercises, and mindset techniques
+- **Shooting Improvement** - Form fundamentals and practice drills
+- **Defensive Training** - Stance, positioning, and drill recommendations
+- **Vertical Jump Development** - Plyometric and strength training programs
+- **General Basketball Coaching** - Comprehensive guidance on various aspects
+
+### Technical Implementation
+**File: `src/lib/aiCoach.ts`**
+- Added `isOpenAIConfigured()` helper function to check API key availability
+- Modified `getCoachResponse()` to automatically use fallback when API key is missing
+- Enhanced error handling to gracefully switch to fallback on API failures
+- Expanded `getFallbackResponse()` with 10+ detailed response templates
+
+**File: `src/pages/ThinkingCorner.tsx`**
+- Updated UI to show "Basic Coach Mode" info banner instead of errors
+- Displays helpful context about optional AI features
+- Maintains consistent user experience regardless of configuration
+
+### User Experience
+| Scenario | Before | After |
+|----------|--------|-------|
+| No API Key | ❌ Error message, empty responses | ✅ Basic Coach Mode, comprehensive responses |
+| API Key Present | ✅ Full AI responses | ✅ Full AI responses (unchanged) |
+| API Error/Quota | ❌ Error, no response | ✅ Automatic fallback with warning |
+
+### Configuration
+The OpenAI API key remains **optional**:
+```env
+# Optional - enables full AI-powered coaching
+VITE_OPENAI_API_KEY=your-openai-api-key-here
+```
+
+If not configured, the AI Coach works perfectly using the enhanced fallback system.
