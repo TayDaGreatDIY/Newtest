@@ -1,4 +1,5 @@
 export { Landing } from './Landing';
+export { LearnMore } from './LearnMore';
 export { Auth } from './Auth';
 export { Feed } from './Feed';
 export { Courts } from './Courts';

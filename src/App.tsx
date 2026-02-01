@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Layout, AppLayout } from './layout';
 import { 
   Landing, 
+  LearnMore,
   Auth, 
   Feed, 
   Courts, 
@@ -35,6 +36,7 @@ function App() {
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Layout><Landing /></Layout>} />
+            <Route path="/learn-more" element={<Layout><LearnMore /></Layout>} />
             <Route path="/auth" element={<Navigate to="/auth/sign-in" replace />} />
             <Route path="/auth/sign-in" element={<Layout><Auth /></Layout>} />
             <Route path="/auth/sign-up" element={<Layout><Auth /></Layout>} />

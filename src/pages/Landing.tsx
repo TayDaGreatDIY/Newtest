@@ -25,21 +25,21 @@ export const Landing: React.FC = () => {
         {/* Main Hero */}
         <div className="text-center mb-20 mt-12">
           <Badge variant="accent" className="mb-6">
-            PWA Ready • Mobile First • 2026
+            Verified Courts • Real Challenges • Discipline-First
           </Badge>
           <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
-            Next Gen Sports
+            Turn Every Court
             <br />
-            Experience
+            Into a Game.
           </h1>
           <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto">
-            Track your performance, compete with friends, and reach new heights with our cutting-edge mobile platform.
+            Track your grind, compete with friends, and level up through verified check-ins, challenges, and rewards—built for players and parents who want real accountability.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button variant="primary" size="lg" onClick={() => navigate('/auth')}>
               Get Started
             </Button>
-            <Button variant="glass" size="lg">
+            <Button variant="glass" size="lg" onClick={() => navigate('/learn-more')}>
               Learn More
             </Button>
           </div>
@@ -48,26 +48,26 @@ export const Landing: React.FC = () => {
         {/* Feature Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
           <Card hover variant="glass">
-            <div className="text-4xl mb-4">⚡</div>
-            <h3 className="text-xl font-bold mb-2">Lightning Fast</h3>
+            <div className="text-4xl mb-4">📍</div>
+            <h3 className="text-xl font-bold mb-2">Verified Court Check-Ins</h3>
             <p className="text-gray-400">
-              Blazing fast performance with cutting-edge technology
+              GPS + QR check-ins keep it real—no fake stats, just real runs on real courts.
             </p>
           </Card>
           
           <Card hover variant="glass">
-            <div className="text-4xl mb-4">📱</div>
-            <h3 className="text-xl font-bold mb-2">Mobile First</h3>
+            <div className="text-4xl mb-4">🎯</div>
+            <h3 className="text-xl font-bold mb-2">Challenges &amp; Missions</h3>
             <p className="text-gray-400">
-              Designed for the best mobile experience possible
+              Daily and weekly skill challenges that turn training into competition—solo or versus friends.
             </p>
           </Card>
           
           <Card hover variant="glass">
-            <div className="text-4xl mb-4">🎨</div>
-            <h3 className="text-xl font-bold mb-2">Modern UI</h3>
+            <div className="text-4xl mb-4">🏆</div>
+            <h3 className="text-xl font-bold mb-2">Badges, Streaks, and Ranks</h3>
             <p className="text-gray-400">
-              Glass morphism with beautiful gradients
+              Earn XP, build streaks, unlock badges, and climb court, city, and global leaderboards.
             </p>
           </Card>
         </div>
@@ -77,35 +77,35 @@ export const Landing: React.FC = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div>
               <div className="text-4xl font-bold gradient-primary bg-clip-text text-transparent mb-2">
-                50K+
+                500+
               </div>
-              <div className="text-sm text-gray-400">Active Users</div>
+              <div className="text-sm text-gray-400">Courts Verified</div>
             </div>
             <div>
               <div className="text-4xl font-bold gradient-secondary bg-clip-text text-transparent mb-2">
-                1M+
+                10K+
               </div>
-              <div className="text-sm text-gray-400">Workouts Logged</div>
+              <div className="text-sm text-gray-400">Challenges Completed</div>
             </div>
             <div>
               <div className="text-4xl font-bold gradient-accent bg-clip-text text-transparent mb-2">
-                24/7
+                25K+
               </div>
-              <div className="text-sm text-gray-400">Support</div>
+              <div className="text-sm text-gray-400">Streaks Logged</div>
             </div>
             <div>
               <div className="text-4xl font-bold gradient-primary bg-clip-text text-transparent mb-2">
-                4.9★
+                50K+
               </div>
-              <div className="text-sm text-gray-400">App Rating</div>
+              <div className="text-sm text-gray-400">Badges Earned</div>
             </div>
           </div>
         </Card>
 
         {/* CTA Section */}
         <div className="text-center py-16">
-          <h2 className="text-4xl font-bold mb-6">Ready to Start?</h2>
-          <p className="text-gray-400 mb-8">Join thousands of athletes achieving their goals</p>
+          <h2 className="text-4xl font-bold mb-6">Ready to build your basketball journey?</h2>
+          <p className="text-gray-400 mb-8">Join a positive, verified community where effort shows—and progress is earned.</p>
           <Button variant="primary" size="lg" onClick={() => navigate('/auth')}>
             Create Account
           </Button>
