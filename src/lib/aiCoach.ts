@@ -50,7 +50,7 @@ export async function getCoachResponse(
     // Call OpenAI API
     const completion = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
-      messages: messages as any,
+      messages: messages.map(m => ({ role: m.role, content: m.content })),
       temperature: 0.7,
       max_tokens: 500,
     });

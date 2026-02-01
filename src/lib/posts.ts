@@ -18,10 +18,23 @@ export async function getFeedPosts(limit = 50, offset = 0) {
     if (error) throw error;
 
     // Transform the data to match PostWithUser interface
-    const posts: PostWithUser[] = (data || []).map((row: any) => ({
+    const posts: PostWithUser[] = (data || []).map((row: {
+      post_id: string;
+      user_id: string;
+      post_type: string;
+      post_content: string;
+      post_image_url: string | null;
+      post_challenge_id: string | null;
+      likes_count: number;
+      comments_count: number;
+      shares_count: number;
+      created_at: string;
+      user_display_name: string | null;
+      is_liked_by_me: boolean;
+    }) => ({
       id: row.post_id,
       user_id: row.user_id,
-      type: row.post_type,
+      type: row.post_type as 'text' | 'image' | 'challenge',
       content: row.post_content,
       image_url: row.post_image_url,
       challenge_id: row.post_challenge_id,
@@ -149,7 +162,15 @@ export async function getPostComments(postId: string, limit = 50, offset = 0) {
 
     if (error) throw error;
 
-    const comments: PostCommentWithUser[] = (data || []).map((comment: any) => ({
+    const comments: PostCommentWithUser[] = (data || []).map((comment: {
+      id: string;
+      post_id: string;
+      user_id: string;
+      content: string;
+      created_at: string;
+      updated_at: string;
+      profiles: { display_name: string | null } | null;
+    }) => ({
       id: comment.id,
       post_id: comment.post_id,
       user_id: comment.user_id,
@@ -228,7 +249,11 @@ export async function uploadPostImage(file: File) {
 /**
  * Subscribe to real-time changes on posts
  */
-export function subscribeToPostChanges(callback: (payload: any) => void) {
+export function subscribeToPostChanges(callback: (payload: {
+  eventType: 'INSERT' | 'UPDATE' | 'DELETE';
+  new: Record<string, unknown>;
+  old: Record<string, unknown>;
+}) => void) {
   const channel = supabase
     .channel('posts-changes')
     .on(
@@ -246,7 +271,11 @@ export function subscribeToPostChanges(callback: (payload: any) => void) {
 /**
  * Subscribe to real-time changes on post likes
  */
-export function subscribeToPostLikeChanges(callback: (payload: any) => void) {
+export function subscribeToPostLikeChanges(callback: (payload: {
+  eventType: 'INSERT' | 'UPDATE' | 'DELETE';
+  new: Record<string, unknown>;
+  old: Record<string, unknown>;
+}) => void) {
   const channel = supabase
     .channel('post-likes-changes')
     .on(

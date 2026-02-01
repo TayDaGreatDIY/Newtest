@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { GradientButton } from '../components';
 import { getThreadMessages, sendMessage, markThreadAsRead, subscribeToThreadMessages } from '../lib/messages';
@@ -26,38 +26,7 @@ export const ChatThread: React.FC = () => {
     getUserId();
   }, []);
 
-  // Load messages on mount
-  useEffect(() => {
-    if (threadId) {
-      loadMessages();
-      markThreadAsRead(threadId);
-    }
-  }, [threadId]);
-
-  // Subscribe to real-time messages
-  useEffect(() => {
-    if (!threadId) return;
-
-    const unsubscribe = subscribeToThreadMessages(threadId, (payload) => {
-      if (payload.eventType === 'INSERT') {
-        // Add new message to the list
-        loadMessages();
-        // Mark as read if thread is open
-        markThreadAsRead(threadId);
-      }
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, [threadId]);
-
-  // Auto-scroll to bottom when new messages arrive
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const loadMessages = async () => {
+  const loadMessages = useCallback(async () => {
     if (!threadId) return;
 
     setLoading(true);
@@ -75,7 +44,39 @@ export const ChatThread: React.FC = () => {
       }
     }
     setLoading(false);
-  };
+  }, [threadId, currentUserId]);
+
+  // Load messages on mount
+  useEffect(() => {
+    if (threadId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      loadMessages();
+      markThreadAsRead(threadId);
+    }
+  }, [threadId, loadMessages]);
+
+  // Subscribe to real-time messages
+  useEffect(() => {
+    if (!threadId) return;
+
+    const unsubscribe = subscribeToThreadMessages(threadId, (payload) => {
+      if (payload.eventType === 'INSERT') {
+        // Add new message to the list
+        loadMessages();
+        // Mark as read if thread is open
+        markThreadAsRead(threadId);
+      }
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [threadId, loadMessages]);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const handleSendMessage = async () => {
     if (!messageInput.trim() || !threadId) return;

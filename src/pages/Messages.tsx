@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GlassCard, SectionHeader, EmptyState } from '../components';
 import { getUserThreads, subscribeToThreadUpdates } from '../lib/messages';
@@ -10,10 +10,22 @@ export const Messages: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const loadThreads = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await getUserThreads();
+    if (error) {
+      setError(error);
+    } else if (data) {
+      setThreads(data);
+    }
+    setLoading(false);
+  }, []);
+
   // Load threads on mount
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadThreads();
-  }, []);
+  }, [loadThreads]);
 
   // Subscribe to real-time updates
   useEffect(() => {
@@ -24,18 +36,7 @@ export const Messages: React.FC = () => {
     return () => {
       unsubscribe();
     };
-  }, []);
-
-  const loadThreads = async () => {
-    setLoading(true);
-    const { data, error } = await getUserThreads();
-    if (error) {
-      setError(error);
-    } else if (data) {
-      setThreads(data);
-    }
-    setLoading(false);
-  };
+  }, [loadThreads]);
 
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);

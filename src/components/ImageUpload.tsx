@@ -1,5 +1,4 @@
 import React, { useState, useRef } from 'react';
-import { GradientButton } from './';
 
 interface ImageUploadProps {
   onImageSelect: (file: File, preview: string) => void;

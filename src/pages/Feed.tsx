@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { GlassCard, SectionHeader, GradientButton, EmptyState, Modal, ImageUpload } from '../components';
 import { getFeedPosts, likePost, unlikePost, createPost, uploadPostImage, subscribeToPostChanges, subscribeToPostLikeChanges } from '../lib/posts';
 import type { PostWithUser } from '../types/db';
@@ -13,10 +13,22 @@ export const Feed: React.FC = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
 
+  const loadPosts = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await getFeedPosts();
+    if (error) {
+      setError(error);
+    } else if (data) {
+      setPosts(data);
+    }
+    setLoading(false);
+  }, []);
+
   // Load posts on mount
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadPosts();
-  }, []);
+  }, [loadPosts]);
 
   // Subscribe to real-time updates
   useEffect(() => {
@@ -32,18 +44,7 @@ export const Feed: React.FC = () => {
       unsubscribePosts();
       unsubscribeLikes();
     };
-  }, []);
-
-  const loadPosts = async () => {
-    setLoading(true);
-    const { data, error } = await getFeedPosts();
-    if (error) {
-      setError(error);
-    } else if (data) {
-      setPosts(data);
-    }
-    setLoading(false);
-  };
+  }, [loadPosts]);
 
   const handleLike = async (postId: string, isLiked: boolean) => {
     const { error } = isLiked ? await unlikePost(postId) : await likePost(postId);

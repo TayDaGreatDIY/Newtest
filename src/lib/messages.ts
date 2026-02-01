@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient';
-import type { MessageThread, Message, MessageWithSender, ThreadWithDetails } from '../types/db';
+import type { Message, MessageWithSender, ThreadWithDetails } from '../types/db';
 
 // =====================================================
 // MESSAGE THREADS
@@ -77,7 +77,14 @@ export async function getThreadMessages(threadId: string, limit = 50, offset = 0
     if (error) throw error;
 
     // Transform the data to match MessageWithSender interface
-    const messages: MessageWithSender[] = (data || []).map((row: any) => ({
+    const messages: MessageWithSender[] = (data || []).map((row: {
+      message_id: string;
+      thread_id: string;
+      sender_id: string;
+      content: string;
+      created_at: string;
+      sender_name: string | null;
+    }) => ({
       id: row.message_id,
       thread_id: row.thread_id,
       sender_id: row.sender_id,
@@ -141,7 +148,11 @@ export async function deleteMessage(messageId: string) {
 /**
  * Subscribe to real-time messages in a thread
  */
-export function subscribeToThreadMessages(threadId: string, callback: (payload: any) => void) {
+export function subscribeToThreadMessages(threadId: string, callback: (payload: {
+  eventType: 'INSERT' | 'UPDATE' | 'DELETE';
+  new: Record<string, unknown>;
+  old: Record<string, unknown>;
+}) => void) {
   const channel = supabase
     .channel(`messages-${threadId}`)
     .on(
@@ -164,7 +175,11 @@ export function subscribeToThreadMessages(threadId: string, callback: (payload: 
 /**
  * Subscribe to real-time thread updates
  */
-export function subscribeToThreadUpdates(callback: (payload: any) => void) {
+export function subscribeToThreadUpdates(callback: (payload: {
+  eventType: 'INSERT' | 'UPDATE' | 'DELETE';
+  new: Record<string, unknown>;
+  old: Record<string, unknown>;
+}) => void) {
   const channel = supabase
     .channel('thread-updates')
     .on(
