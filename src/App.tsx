@@ -11,7 +11,9 @@ import {
   Messages,
   ChatThread,
   Profile,
-  ThinkingCorner
+  ThinkingCorner,
+  PostDetail,
+  CreatePost
 } from './pages';
 import { AuthProvider } from './lib/AuthContext';
 import { ProtectedRoute } from './lib/ProtectedRoute';
@@ -36,6 +38,8 @@ function App() {
             <Route path="/app" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
               <Route index element={<Navigate to="/app/feed" replace />} />
               <Route path="feed" element={<Feed />} />
+              <Route path="posts/new" element={<CreatePost />} />
+              <Route path="posts/:id" element={<PostDetail />} />
               <Route path="courts" element={<Courts />} />
               <Route path="courts/:id" element={<CourtDetail />} />
               <Route path="challenges" element={<Challenges />} />

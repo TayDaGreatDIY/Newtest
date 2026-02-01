@@ -146,6 +146,7 @@ export interface Post {
 export interface PostWithUser extends Post {
   user_display_name: string | null;
   is_liked_by_me: boolean;
+  is_reposted_by_me: boolean;
 }
 
 export interface CreatePostInput {
@@ -172,6 +173,17 @@ export interface PostComment {
 }
 
 export interface PostCommentWithUser extends PostComment {
+  user_display_name: string | null;
+}
+
+export interface PostRepost {
+  id: string;
+  post_id: string;
+  user_id: string;
+  created_at: string;
+}
+
+export interface PostRepostWithUser extends PostRepost {
   user_display_name: string | null;
 }
 
