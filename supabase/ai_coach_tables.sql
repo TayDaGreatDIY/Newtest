@@ -44,10 +44,7 @@ CREATE TABLE IF NOT EXISTS public.ai_coach_conversations (
   -- Metadata
   conversation_context JSONB, -- Stores extracted context like goals mentioned, progress noted, etc.
   
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  
-  -- Index for faster queries
-  CONSTRAINT valid_role CHECK (message_role IN ('user', 'assistant'))
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
 -- Create indexes

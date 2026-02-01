@@ -2,6 +2,9 @@ import OpenAI from 'openai';
 import { supabase } from './supabaseClient';
 import type { AICoachPreferences } from '../types/db';
 
+// Constants
+const POSTGRES_NO_ROWS_ERROR = 'PGRST116';
+
 // ⚠️ SECURITY WARNING: Development Only Configuration ⚠️
 // This configuration exposes the OpenAI API key in the browser.
 // For production deployments, this MUST be replaced with one of:
@@ -173,7 +176,7 @@ export async function getUserPreferences(userId: string): Promise<AICoachPrefere
       .single();
 
     if (error) {
-      if (error.code === 'PGRST116') {
+      if (error.code === POSTGRES_NO_ROWS_ERROR) {
         // No preferences found - that's ok
         return null;
       }

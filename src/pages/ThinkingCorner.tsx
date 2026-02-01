@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { GlassCard, SectionHeader, GradientButton } from '../components';
 import { getCoachResponse, getFallbackResponse, getUserPreferences, updateUserPreferences, getConversationHistory, type ChatMessage } from '../lib/aiCoach';
 import { useAuth } from '../lib/AuthContext';
@@ -40,13 +40,7 @@ export const ThinkingCorner: React.FC = () => {
   const [savingPreferences, setSavingPreferences] = useState(false);
 
   // Load user preferences and conversation history on mount
-  useEffect(() => {
-    if (user) {
-      loadUserData();
-    }
-  }, [user]);
-
-  const loadUserData = async () => {
+  const loadUserData = useCallback(async () => {
     if (!user) return;
 
     // Load preferences
@@ -66,7 +60,13 @@ export const ThinkingCorner: React.FC = () => {
         ...history.slice(-10), // Last 10 messages
       ]);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadUserData();
+    }
+  }, [user, loadUserData]);
 
   const handleSavePreferences = async () => {
     if (!user) return;
@@ -211,7 +211,12 @@ export const ThinkingCorner: React.FC = () => {
                     min="1"
                     max="7"
                     value={preferences.training_days_per_week || 3}
-                    onChange={(e) => setPreferences({ ...preferences, training_days_per_week: parseInt(e.target.value) })}
+                    onChange={(e) => {
+                      const value = parseInt(e.target.value, 10);
+                      if (!isNaN(value) && value >= 1 && value <= 7) {
+                        setPreferences({ ...preferences, training_days_per_week: value });
+                      }
+                    }}
                     className="w-full px-4 py-2 rounded-xl glass focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
                   />
                 </div>
