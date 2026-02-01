@@ -1,26 +1,112 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { GlassCard, SectionHeader, StatPill, GradientButton, Modal } from '../components';
-import { mockCourts } from '../data/mockCourts';
+import { 
+  GlassCard, 
+  SectionHeader, 
+  GradientButton, 
+  ChampionBadge, 
+  CheckInButton,
+  ChallengeCard,
+  CreateChallengeModal,
+  EmptyState
+} from '../components';
+import { getCourtWithChampion } from '../lib/courts';
+import { checkInToCourt, getCourtCheckins, hasCheckedInToday } from '../lib/checkins';
+import { getCourtChallenges, createChallenge } from '../lib/challenges';
+import type { CourtWithChampion, CourtCheckinWithUser, ChallengeWithDetails, CreateChallengeInput } from '../types/db';
 
 export const CourtDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [showCheckInModal, setShowCheckInModal] = useState(false);
-  const [checkInCode, setCheckInCode] = useState('');
-  const [isInQueue, setIsInQueue] = useState(false);
+  
+  const [court, setCourt] = useState<CourtWithChampion | null>(null);
+  const [checkins, setCheckins] = useState<CourtCheckinWithUser[]>([]);
+  const [challenges, setChallenges] = useState<ChallengeWithDetails[]>([]);
+  const [hasCheckedIn, setHasCheckedIn] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isCreateChallengeOpen, setIsCreateChallengeOpen] = useState(false);
 
-  const court = mockCourts.find(c => c.id === id);
+  useEffect(() => {
+    if (id) {
+      loadCourtData();
+    }
+  }, [id]);
 
-  if (!court) {
+  const loadCourtData = async () => {
+    if (!id) return;
+    
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Load court with champion
+      const { data: courtData, error: courtError } = await getCourtWithChampion(id);
+      if (courtError) throw new Error(courtError.message);
+      setCourt(courtData);
+
+      // Load recent check-ins
+      const { data: checkinsData, error: checkinsError } = await getCourtCheckins(id, 10);
+      if (checkinsError) throw new Error(checkinsError.message);
+      setCheckins(checkinsData || []);
+
+      // Load challenges
+      const { data: challengesData, error: challengesError } = await getCourtChallenges(id);
+      if (challengesError) throw new Error(challengesError.message);
+      setChallenges(challengesData || []);
+
+      // Check if user has checked in today
+      const { hasCheckedIn: checkedIn } = await hasCheckedInToday(id);
+      setHasCheckedIn(checkedIn);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load court data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCheckIn = async () => {
+    if (!id) return;
+    
+    const { error } = await checkInToCourt({ court_id: id });
+    if (error) {
+      throw new Error(error.message);
+    }
+    
+    // Reload data
+    await loadCourtData();
+  };
+
+  const handleCreateChallenge = async (input: CreateChallengeInput) => {
+    const { error } = await createChallenge(input);
+    if (error) {
+      throw new Error(error.message);
+    }
+    
+    // Reload challenges
+    await loadCourtData();
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen px-4 py-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-4xl mb-4 animate-bounce">🏀</div>
+          <p className="text-gray-400">Loading court...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !court) {
     return (
       <div className="min-h-screen px-4 py-6">
-        <div className="text-center py-12">
-          <p className="text-gray-400">Court not found</p>
+        <div className="glass rounded-xl p-6 text-center">
+          <div className="text-4xl mb-4">⚠️</div>
+          <p className="text-red-500 mb-4">{error || 'Court not found'}</p>
           <GradientButton 
             variant="primary" 
             onClick={() => navigate('/app/courts')}
-            className="mt-4"
           >
             Back to Courts
           </GradientButton>
@@ -28,25 +114,6 @@ export const CourtDetail: React.FC = () => {
       </div>
     );
   }
-
-  const handleCheckIn = () => {
-    if (checkInCode === court.checkInCode) {
-      alert('✅ Successfully checked in!');
-      setShowCheckInModal(false);
-      setCheckInCode('');
-    } else {
-      alert('❌ Invalid check-in code. Try again.');
-    }
-  };
-
-  const handleJoinQueue = () => {
-    setIsInQueue(true);
-    alert('✅ You\'ve been added to the queue!');
-  };
-
-  const handleCallNext = () => {
-    alert('📢 Called next team in queue!');
-  };
 
   return (
     <div className="min-h-screen px-4 py-6">
@@ -64,166 +131,115 @@ export const CourtDetail: React.FC = () => {
         subtitle={court.location}
       />
 
-      {/* Status and Stats */}
+      {/* Court Info */}
       <GlassCard className="mb-4">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold">Court Status</h3>
-          <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-            court.status === 'available' ? 'bg-green-500/20 text-green-400' :
-            court.status === 'busy' ? 'bg-yellow-500/20 text-yellow-400' :
-            'bg-red-500/20 text-red-400'
-          }`}>
-            {court.status.toUpperCase()}
-          </span>
+        {court.description && (
+          <p className="text-gray-300 mb-4">{court.description}</p>
+        )}
+        
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-sm text-gray-400">Max Players:</span>
+          <span className="font-bold">{court.max_players}</span>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          <StatPill 
-            label="Players" 
-            value={`${court.currentPlayers}/${court.maxPlayers}`} 
-            icon="👥"
-            variant="glass"
-          />
-          <StatPill 
-            label="Distance" 
-            value={court.distance} 
-            icon="🚶"
-            variant="glass"
-          />
-        </div>
-
-        <div className="mt-4">
-          <p className="text-sm text-gray-400 mb-2">Amenities</p>
-          <div className="flex gap-2 flex-wrap">
-            {court.amenities.map((amenity, idx) => (
-              <span key={idx} className="text-xs px-3 py-1 rounded-full bg-white/5 text-gray-300">
-                {amenity}
-              </span>
-            ))}
-          </div>
-        </div>
-      </GlassCard>
-
-      {/* Actions */}
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        <GradientButton 
-          variant="primary" 
-          onClick={() => setShowCheckInModal(true)}
-          fullWidth
-        >
-          📱 Check In
-        </GradientButton>
-        <GradientButton 
-          variant="accent" 
-          onClick={handleCallNext}
-          fullWidth
-          disabled={court.queue.length === 0}
-        >
-          📢 Call Next
-        </GradientButton>
-      </div>
-
-      {/* Queue Section */}
-      <GlassCard className="mb-4">
-        <div className="flex items-center justify-between mb-4">
+        {court.amenities && court.amenities.length > 0 && (
           <div>
-            <h3 className="text-lg font-bold">Queue</h3>
-            <p className="text-sm text-gray-400">{court.queue.length} teams waiting</p>
-          </div>
-          {!isInQueue && (
-            <GradientButton 
-              variant="secondary" 
-              size="sm"
-              onClick={handleJoinQueue}
-            >
-              Join Queue
-            </GradientButton>
-          )}
-          {isInQueue && (
-            <span className="text-sm text-green-400 font-semibold">✓ In Queue</span>
-          )}
-        </div>
-
-        {court.queue.length === 0 ? (
-          <p className="text-center text-gray-400 py-4">No teams in queue</p>
-        ) : (
-          <div className="space-y-3">
-            {court.queue.map((entry) => (
-              <div 
-                key={entry.id}
-                className="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors"
-              >
-                <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center font-bold">
-                  #{entry.position}
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-bold">{entry.teamName}</h4>
-                  <p className="text-xs text-gray-400">
-                    {entry.players.join(', ')} • {entry.joinedAt}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs text-gray-400">Wait Time</p>
-                  <p className="text-sm font-semibold">{entry.waitTime}</p>
-                </div>
-              </div>
-            ))}
+            <p className="text-sm text-gray-400 mb-2">Amenities</p>
+            <div className="flex gap-2 flex-wrap">
+              {court.amenities.map((amenity, idx) => (
+                <span key={idx} className="text-xs px-3 py-1 rounded-full bg-white/5 text-gray-300">
+                  {amenity}
+                </span>
+              ))}
+            </div>
           </div>
         )}
       </GlassCard>
 
-      {/* Check-In Modal */}
-      <Modal 
-        isOpen={showCheckInModal}
-        onClose={() => setShowCheckInModal(false)}
-        title="Check In to Court"
-      >
-        <div className="space-y-4">
-          {/* QR Placeholder */}
-          <div className="w-full h-48 bg-gradient-to-br from-purple-900/30 to-cyan-900/30 rounded-xl flex items-center justify-center border-2 border-dashed border-white/20">
-            <div className="text-center">
-              <div className="text-6xl mb-2">📱</div>
-              <p className="text-gray-400">QR Code Scanner</p>
-              <p className="text-xs text-gray-500 mt-1">Scan court QR code</p>
-            </div>
-          </div>
+      {/* Champion Badge */}
+      <ChampionBadge 
+        championName={court.champion_name}
+        checkinCount={court.champion_checkin_count}
+        className="mb-4"
+      />
 
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/10"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-black/30 text-gray-400">Or enter code manually</span>
-            </div>
-          </div>
+      {/* Check-In Button */}
+      <CheckInButton 
+        courtId={court.id}
+        courtName={court.name}
+        hasCheckedIn={hasCheckedIn}
+        onCheckIn={handleCheckIn}
+        className="mb-6"
+      />
 
-          {/* Code Entry */}
-          <div>
-            <label className="block text-sm font-medium mb-2 text-gray-300">
-              Check-In Code
-            </label>
-            <input
-              type="text"
-              placeholder="Enter code (e.g., VB2024)"
-              value={checkInCode}
-              onChange={(e) => setCheckInCode(e.target.value.toUpperCase())}
-              className="w-full px-4 py-3 rounded-xl glass focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all text-center text-lg font-mono"
-            />
-            <p className="text-xs text-gray-500 mt-2">
-              Hint: Code is <code className="px-1 py-0.5 rounded bg-white/5">{court.checkInCode}</code>
-            </p>
+      {/* Recent Check-ins */}
+      <div className="mb-6">
+        <h3 className="text-lg font-bold mb-3">Recent Check-ins</h3>
+        {checkins.length === 0 ? (
+          <GlassCard>
+            <p className="text-center text-gray-400 py-4">No check-ins yet</p>
+          </GlassCard>
+        ) : (
+          <div className="space-y-2">
+            {checkins.slice(0, 5).map((checkin) => (
+              <GlassCard key={checkin.id} className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full gradient-primary flex items-center justify-center text-xl">
+                  👤
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium">{checkin.user_display_name || 'Anonymous'}</p>
+                  <p className="text-xs text-gray-400">
+                    {new Date(checkin.checked_in_at).toLocaleString()}
+                  </p>
+                </div>
+              </GlassCard>
+            ))}
           </div>
+        )}
+      </div>
 
+      {/* Active Challenges */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg font-bold">Challenges</h3>
           <GradientButton 
-            variant="primary" 
-            fullWidth
-            onClick={handleCheckIn}
-            disabled={!checkInCode}
+            size="sm" 
+            variant="accent"
+            onClick={() => setIsCreateChallengeOpen(true)}
           >
-            Check In
+            + Challenge
           </GradientButton>
         </div>
-      </Modal>
+
+        {challenges.length === 0 ? (
+          <EmptyState 
+            icon="🎯"
+            title="No challenges yet"
+            description="Create a challenge to compete with others!"
+            actionLabel="Create Challenge"
+            onAction={() => setIsCreateChallengeOpen(true)}
+          />
+        ) : (
+          <div className="space-y-3">
+            {challenges.map((challenge) => (
+              <ChallengeCard 
+                key={challenge.id}
+                challenge={challenge}
+                showCourtName={false}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Create Challenge Modal */}
+      <CreateChallengeModal 
+        isOpen={isCreateChallengeOpen}
+        onClose={() => setIsCreateChallengeOpen(false)}
+        onSubmit={handleCreateChallenge}
+        courtId={court.id}
+        courtName={court.name}
+      />
     </div>
   );
 };
