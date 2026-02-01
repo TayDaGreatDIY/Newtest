@@ -243,7 +243,7 @@ export async function getChallengeParticipants(challengeId: string) {
 
   const participantsWithUser: ChallengeParticipantWithUser[] = participants.map(p => ({
     ...p,
-    user_display_name: profileMap.get(p.user_id) || 'Anonymous',
+    user_display_name: profileMap.get(p.user_id) || 'Anonymous User',
   }));
 
   return { data: participantsWithUser, error: null };
