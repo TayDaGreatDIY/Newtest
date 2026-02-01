@@ -1,11 +1,90 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GlassCard, SectionHeader } from '../components';
+import { GlassCard, SectionHeader, GradientButton, useToast } from '../components';
 
 export const Appearance: React.FC = () => {
   const navigate = useNavigate();
+  const { showToast } = useToast();
+  
+  // Current applied settings (loaded from localStorage)
+  const [appliedTheme, setAppliedTheme] = useState<'dark' | 'light'>('dark');
+  const [appliedAccentColor, setAppliedAccentColor] = useState('purple');
+  
+  // Pending changes (user is previewing)
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [accentColor, setAccentColor] = useState('purple');
+  
+  // Track if there are unsaved changes
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Function to apply theme changes to the document
+  const applyThemeToDocument = (selectedTheme: 'dark' | 'light', selectedAccentColor: string) => {
+    const root = document.documentElement;
+    
+    // Apply theme
+    if (selectedTheme === 'light') {
+      root.classList.add('light-theme');
+    } else {
+      root.classList.remove('light-theme');
+    }
+    
+    // Apply accent color by setting CSS custom properties
+    const accentColorMap: Record<string, { from: string; to: string }> = {
+      purple: { from: '#a855f7', to: '#ec4899' },
+      blue: { from: '#3b82f6', to: '#06b6d4' },
+      green: { from: '#10b981', to: '#059669' },
+      orange: { from: '#f97316', to: '#ef4444' },
+      pink: { from: '#ec4899', to: '#f43f5e' },
+    };
+    
+    const colors = accentColorMap[selectedAccentColor] || accentColorMap.purple;
+    root.style.setProperty('--accent-from', colors.from);
+    root.style.setProperty('--accent-to', colors.to);
+  };
+
+  // Load saved preferences on mount
+  useEffect(() => {
+    const savedTheme = (localStorage.getItem('m2dg_theme') ?? 'dark') as 'dark' | 'light';
+    const savedAccentColor = localStorage.getItem('m2dg_accent_color') ?? 'purple';
+    
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setAppliedTheme(savedTheme);
+    setAppliedAccentColor(savedAccentColor);
+    setTheme(savedTheme);
+    setAccentColor(savedAccentColor);
+    
+    // Apply the saved theme
+    applyThemeToDocument(savedTheme, savedAccentColor);
+  }, []);
+
+  // Check if there are unsaved changes
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setHasUnsavedChanges(
+      theme !== appliedTheme || accentColor !== appliedAccentColor
+    );
+  }, [theme, accentColor, appliedTheme, appliedAccentColor]);
+
+  const handleConfirmChanges = () => {
+    // Save to localStorage
+    localStorage.setItem('m2dg_theme', theme);
+    localStorage.setItem('m2dg_accent_color', accentColor);
+    
+    // Apply the theme
+    applyThemeToDocument(theme, accentColor);
+    
+    // Update applied state
+    setAppliedTheme(theme);
+    setAppliedAccentColor(accentColor);
+    
+    showToast('Appearance settings saved!', 'success');
+  };
+
+  const handleResetChanges = () => {
+    setTheme(appliedTheme);
+    setAccentColor(appliedAccentColor);
+    showToast('Changes reset', 'info');
+  };
 
   const accentColors = [
     { name: 'Purple', value: 'purple', gradient: 'from-purple-500 to-pink-500' },
@@ -157,6 +236,34 @@ export const Appearance: React.FC = () => {
           </div>
         </div>
       </GlassCard>
+
+      {/* Confirm Changes Button */}
+      {hasUnsavedChanges && (
+        <div className="fixed bottom-6 left-0 right-0 px-4 z-50">
+          <GlassCard className="max-w-2xl mx-auto">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex-1">
+                <p className="font-semibold">You have unsaved changes</p>
+                <p className="text-sm text-gray-400">Confirm to apply your new appearance settings</p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleResetChanges}
+                  className="px-4 py-2 rounded-xl glass hover:bg-white/10 transition-colors text-sm font-medium"
+                >
+                  Reset
+                </button>
+                <GradientButton
+                  variant="primary"
+                  onClick={handleConfirmChanges}
+                >
+                  Confirm Changes
+                </GradientButton>
+              </div>
+            </div>
+          </GlassCard>
+        </div>
+      )}
     </div>
   );
 };
