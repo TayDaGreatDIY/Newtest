@@ -22,7 +22,7 @@ The app is deployed automatically via GitHub Actions on every push to the `main`
 - 👤 User profiles with editable display names
 - 🛡️ Row-level security (RLS) for data protection
 
-### MVP Phase 1 Features
+### MVP Phase 1 Features ✅
 
 - 🏀 **Courts System**: Browse, search, and create basketball courts
 - 📍 **Check-ins**: Check in to courts to track activity
@@ -30,6 +30,18 @@ The app is deployed automatically via GitHub Actions on every push to the `main`
 - ⚔️ **Challenges**: Create and join challenges at courts
 - 🏆 **Leaderboards**: Real-time leaderboards for each challenge
 - 📊 **User Stats**: Track check-ins, challenges, and wins
+
+### 🚀 What's Next? Phase 2 Features
+
+**Ready to build** - UI exists but needs backend integration:
+
+- 📱 **Posts & Feed System**: Share achievements, photos, and challenges (Priority 1)
+- 💬 **Real-Time Messaging**: Direct messaging between players (Priority 2)
+- 🤖 **AI Coach**: Enhanced basketball coaching with real AI integration (Priority 3)
+
+> 📘 **See [WHATS_NEXT.md](WHATS_NEXT.md)** for a quick overview of what to build next  
+> 📖 **See [PHASE2_ROADMAP.md](PHASE2_ROADMAP.md)** for the complete feature roadmap  
+> 🛠️ **See [IMPLEMENTATION_GUIDE.md](IMPLEMENTATION_GUIDE.md)** for step-by-step implementation instructions
 
 ## 🏆 Court Champion Logic
 
