@@ -61,11 +61,18 @@ export const ChallengeDetail: React.FC = () => {
   const handleSubmitScore = async () => {
     if (!id || !score) return;
     
+    // Validate score is a valid number
+    const parsedScore = parseFloat(score);
+    if (isNaN(parsedScore) || parsedScore < 0) {
+      alert('Please enter a valid positive score');
+      return;
+    }
+    
     setSubmitting(true);
     try {
       const { error } = await submitChallengeResult({
         challenge_id: id,
-        score: parseFloat(score),
+        score: parsedScore,
         notes: notes || undefined,
       });
 

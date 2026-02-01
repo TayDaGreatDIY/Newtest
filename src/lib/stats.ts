@@ -35,20 +35,34 @@ export async function getUserStats(userId: string): Promise<{ data: UserStats | 
 
     // For each challenge, check if user has the highest score
     let challengesWon = 0;
-    if (participations) {
-      for (const participation of participations) {
-        const { data: allScores, error: scoresError } = await supabase
-          .from('challenge_participants')
-          .select('score')
-          .eq('challenge_id', participation.challenge_id)
-          .order('score', { ascending: false })
-          .limit(1);
+    if (participations && participations.length > 0) {
+      // Get all challenge IDs at once
+      const challengeIds = participations.map(p => p.challenge_id);
+      
+      // Get max scores for all challenges in one query
+      const { data: maxScores, error: maxScoresError } = await supabase
+        .from('challenge_participants')
+        .select('challenge_id, score')
+        .in('challenge_id', challengeIds)
+        .order('score', { ascending: false });
 
-        if (!scoresError && allScores && allScores.length > 0) {
-          if (allScores[0].score === participation.score) {
+      if (!maxScoresError && maxScores) {
+        // Group by challenge_id and get the max score for each
+        const maxScoreByChallenge = new Map<string, number>();
+        maxScores.forEach(item => {
+          const currentMax = maxScoreByChallenge.get(item.challenge_id);
+          if (!currentMax || (item.score !== null && item.score > currentMax)) {
+            maxScoreByChallenge.set(item.challenge_id, item.score || 0);
+          }
+        });
+
+        // Count how many times user has the max score
+        participations.forEach(participation => {
+          const maxScore = maxScoreByChallenge.get(participation.challenge_id);
+          if (maxScore !== undefined && participation.score === maxScore) {
             challengesWon++;
           }
-        }
+        });
       }
     }
 

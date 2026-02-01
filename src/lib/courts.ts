@@ -130,10 +130,15 @@ export async function getCourtsWithChampions() {
 
   // Get champion profiles
   const championIds = champions?.map(c => c.champion_id) || [];
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('id, display_name')
-    .in('id', championIds);
+  let profiles: { id: string; display_name: string | null }[] = [];
+  
+  if (championIds.length > 0) {
+    const { data: profilesData } = await supabase
+      .from('profiles')
+      .select('id, display_name')
+      .in('id', championIds);
+    profiles = profilesData || [];
+  }
 
   // Merge data
   const courtsWithChampions: CourtWithChampion[] = courts.map(court => {

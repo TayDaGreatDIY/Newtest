@@ -11,6 +11,11 @@ interface CreateChallengeModalProps {
   courtName?: string;
 }
 
+// Helper function to format date for datetime-local input
+const formatDateTimeForInput = (date: Date): string => {
+  return date.toISOString().slice(0, 16);
+};
+
 export const CreateChallengeModal: React.FC<CreateChallengeModalProps> = ({ 
   isOpen, 
   onClose, 
@@ -26,7 +31,7 @@ export const CreateChallengeModal: React.FC<CreateChallengeModalProps> = ({
     description: '',
     challenge_type: '3-point-contest',
     rules: '',
-    start_time: new Date().toISOString().slice(0, 16), // Format for datetime-local input
+    start_time: formatDateTimeForInput(new Date()),
     end_time: '',
   });
 
@@ -58,7 +63,7 @@ export const CreateChallengeModal: React.FC<CreateChallengeModalProps> = ({
         description: '',
         challenge_type: '3-point-contest',
         rules: '',
-        start_time: new Date().toISOString().slice(0, 16),
+        start_time: formatDateTimeForInput(new Date()),
         end_time: '',
       });
       onClose();

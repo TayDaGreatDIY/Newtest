@@ -103,6 +103,15 @@ export async function getChallenge(challengeId: string) {
  * Get challenges for a specific court
  */
 export async function getCourtChallenges(courtId: string) {
+  // First, get the court name
+  const { data: courtData } = await supabase
+    .from('courts')
+    .select('name')
+    .eq('id', courtId)
+    .single();
+
+  const courtName = courtData?.name || 'Unknown Court';
+
   const { data, error } = await supabase
     .from('challenges')
     .select(`
@@ -135,7 +144,7 @@ export async function getCourtChallenges(courtId: string) {
   // Transform data
   const challengesWithDetails: ChallengeWithDetails[] = data?.map(challenge => ({
     ...challenge,
-    court_name: '', // Not needed for court-specific queries
+    court_name: courtName,
     creator_name: challenge.profiles?.display_name || null,
     participant_count: participantCountMap.get(challenge.id) || 0,
   })) || [];
