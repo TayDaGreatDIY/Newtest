@@ -12,7 +12,9 @@ Your API key needs to be configured in **different locations** depending on wher
 
 ### 1. 🏠 Local Development (On Your Computer)
 
-**File Location:** `.env` file in the project root directory
+**File Location:** `.env` or `.env.local` file in the project root directory
+
+**Note:** Both `.env` and `.env.local` work. Using `.env.local` is recommended as it takes precedence over `.env`.
 
 #### Step-by-Step Instructions:
 
@@ -23,17 +25,20 @@ Your API key needs to be configured in **different locations** depending on wher
 - Copy the API key (it will look like: `sk-proj-...` or `sk-...`)
 - **Save it somewhere safe** - you won't be able to see it again!
 
-**Step 2:** Create your `.env` file
+**Step 2:** Create your `.env` or `.env.local` file
 ```bash
 # Navigate to your project directory
 cd /path/to/Newtest
 
-# Copy the example file to create your .env file
+# Option 1: Create .env file from example
 cp .env.example .env
+
+# Option 2: Create .env.local file (recommended)
+cp .env.example .env.local
 ```
 
-**Step 3:** Edit the `.env` file
-Open the `.env` file in any text editor and add your keys:
+**Step 3:** Edit the `.env` or `.env.local` file
+Open the file in any text editor and add your keys:
 
 ```env
 # Supabase Configuration (required)
@@ -149,12 +154,12 @@ Or manually trigger deployment:
 
 ### DO ✅
 - Keep your API key secret and never share it
-- Add `.env` to `.gitignore` (already done in this project)
+- `.env`, `.env.local`, and `.env.*.local` are already in `.gitignore` (safe!)
 - Use GitHub Secrets for production deployment
 - Rotate your API key if you think it's been compromised
 
 ### DON'T ❌
-- Never commit your `.env` file to Git
+- Never commit your `.env` or `.env.local` files to Git
 - Never share your API key in chat, screenshots, or issues
 - Never hardcode the API key in your source code
 - Never share your OpenAI account credentials
@@ -166,7 +171,7 @@ Or manually trigger deployment:
 ### Problem: "Basic Coach Mode" shows but I added my API key
 
 **Solution:**
-1. Check the `.env` file has the correct format:
+1. Check your `.env` or `.env.local` file has the correct format:
    ```env
    VITE_OPENAI_API_KEY=sk-proj-your-key-here
    ```
@@ -205,11 +210,11 @@ Or manually trigger deployment:
 Use this checklist to ensure your API key is configured correctly:
 
 ### Local Development:
-- [ ] Created `.env` file from `.env.example`
-- [ ] Added `VITE_OPENAI_API_KEY=sk-...` to `.env`
+- [ ] Created `.env` or `.env.local` file (can copy from `.env.example`)
+- [ ] Added `VITE_OPENAI_API_KEY=sk-...` to the file
 - [ ] Restarted dev server with `npm run dev`
 - [ ] Tested AI Coach and verified it works
-- [ ] Confirmed `.env` is in `.gitignore` (never commit it!)
+- [ ] Confirmed `.env` and `.env.local` are in `.gitignore` (never commit them!)
 
 ### Production Deployment:
 - [ ] Obtained OpenAI API key from platform.openai.com
@@ -225,7 +230,7 @@ Use this checklist to ensure your API key is configured correctly:
 | What | Where | How |
 |------|-------|-----|
 | **Get API Key** | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) | Create new secret key |
-| **Local Config** | `.env` file in project root | `VITE_OPENAI_API_KEY=sk-...` |
+| **Local Config** | `.env` or `.env.local` in project root | `VITE_OPENAI_API_KEY=sk-...` |
 | **Production Config** | GitHub → Settings → Secrets → Actions | Add `VITE_OPENAI_API_KEY` secret |
 | **Restart Local** | Terminal | `npm run dev` |
 | **Redeploy** | GitHub → Actions | Push to main or manual trigger |
