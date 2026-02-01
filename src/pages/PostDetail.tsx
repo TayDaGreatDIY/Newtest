@@ -264,7 +264,7 @@ export const PostDetail: React.FC = () => {
                   <p className="text-xs text-gray-400">{formatTimestamp(comment.created_at)}</p>
                 </div>
               </div>
-              <p className="text-sm pl-13">{comment.content}</p>
+              <p className="text-sm pl-12">{comment.content}</p>
             </GlassCard>
           ))
         )}
