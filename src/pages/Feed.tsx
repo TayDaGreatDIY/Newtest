@@ -234,7 +234,7 @@ export const Feed: React.FC = () => {
                   </div>
                   <div 
                     className="flex-1 cursor-pointer hover:opacity-80 transition-opacity" 
-                    onClick={() => navigate('/app/profile')}
+                    onClick={() => navigate(`/app/profile/${post.user_id}`)}
                     title="View profile"
                   >
                     <h3 className="font-bold">{post.user_display_name || 'Anonymous'}</h3>

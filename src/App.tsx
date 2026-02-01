@@ -11,6 +11,7 @@ import {
   Messages,
   ChatThread,
   Profile,
+  UserProfile,
   ThinkingCorner,
   PostDetail,
   CreatePost,
@@ -51,6 +52,7 @@ function App() {
               <Route path="messages" element={<Messages />} />
               <Route path="messages/:threadId" element={<ChatThread />} />
               <Route path="profile" element={<Profile />} />
+              <Route path="profile/:id" element={<UserProfile />} />
               <Route path="profile/settings" element={<Settings />} />
               <Route path="profile/notifications" element={<Notifications />} />
               <Route path="profile/appearance" element={<Appearance />} />

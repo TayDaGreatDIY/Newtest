@@ -8,6 +8,7 @@ export { ChallengeDetail } from './ChallengeDetail';
 export { Messages } from './Messages';
 export { ChatThread } from './ChatThread';
 export { Profile } from './Profile';
+export { UserProfile } from './UserProfile';
 export { ThinkingCorner } from './ThinkingCorner';
 export { PostDetail } from './PostDetail';
 export { CreatePost } from './CreatePost';
