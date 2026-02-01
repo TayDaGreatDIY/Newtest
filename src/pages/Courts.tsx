@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   SectionHeader, 
   EmptyState, 
@@ -16,11 +16,7 @@ export const Courts: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  useEffect(() => {
-    loadCourts();
-  }, []);
-
-  const loadCourts = async () => {
+  const loadCourts = useCallback(async () => {
     setLoading(true);
     const { data, error } = await getCourtsWithChampions();
     if (error) {
@@ -29,7 +25,12 @@ export const Courts: React.FC = () => {
       setCourts(data || []);
     }
     setLoading(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadCourts();
+  }, [loadCourts]);
 
   const handleCreateCourt = async (input: CreateCourtInput) => {
     const { error } = await createCourt(input);

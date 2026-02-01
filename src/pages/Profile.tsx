@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GlassCard, SectionHeader, GradientButton, Badge } from '../components';
 import { useAuth } from '../lib/AuthContext';
@@ -14,20 +14,21 @@ export const Profile: React.FC = () => {
   const [stats, setStats] = useState<UserStats | null>(null);
   const [loadingStats, setLoadingStats] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      loadStats();
-    }
-  }, [user]);
-
-  const loadStats = async () => {
+  const loadStats = useCallback(async () => {
     if (!user) return;
     
     setLoadingStats(true);
     const { data } = await getUserStats(user.id);
     setStats(data);
     setLoadingStats(false);
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      loadStats();
+    }
+  }, [user, loadStats]);
 
   const handleSave = async () => {
     setSaving(true);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   GlassCard, 
@@ -25,13 +25,7 @@ export const ChallengeDetail: React.FC = () => {
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  useEffect(() => {
-    if (id) {
-      loadChallengeData();
-    }
-  }, [id]);
-
-  const loadChallengeData = async () => {
+  const loadChallengeData = useCallback(async () => {
     if (!id) return;
     
     setLoading(true);
@@ -56,7 +50,13 @@ export const ChallengeDetail: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    if (id) {
+      loadChallengeData();
+    }
+  }, [id, loadChallengeData]);
 
   const handleSubmitScore = async () => {
     if (!id || !score) return;

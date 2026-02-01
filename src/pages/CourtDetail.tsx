@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   GlassCard, 
@@ -27,13 +27,7 @@ export const CourtDetail: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isCreateChallengeOpen, setIsCreateChallengeOpen] = useState(false);
 
-  useEffect(() => {
-    if (id) {
-      loadCourtData();
-    }
-  }, [id]);
-
-  const loadCourtData = async () => {
+  const loadCourtData = useCallback(async () => {
     if (!id) return;
     
     setLoading(true);
@@ -63,7 +57,13 @@ export const CourtDetail: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    if (id) {
+      loadCourtData();
+    }
+  }, [id, loadCourtData]);
 
   const handleCheckIn = async () => {
     if (!id) return;
