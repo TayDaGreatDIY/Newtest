@@ -6,6 +6,10 @@
 -- - Thread Participants (users in each thread)
 -- - Messages (individual messages in threads)
 -- - Real-time messaging support
+--
+-- PREREQUISITES:
+-- - Must run mvp_phase1.sql first (defines handle_updated_at function)
+-- - Supabase project must be set up with authentication enabled
 
 -- =====================================================
 -- 1. MESSAGE THREADS TABLE
@@ -174,6 +178,7 @@ CREATE TRIGGER on_new_message
   EXECUTE FUNCTION public.update_thread_last_message();
 
 -- Trigger for updated_at on threads
+-- Note: handle_updated_at() is defined in mvp_phase1.sql
 DROP TRIGGER IF EXISTS on_thread_updated ON public.message_threads;
 CREATE TRIGGER on_thread_updated
   BEFORE UPDATE ON public.message_threads

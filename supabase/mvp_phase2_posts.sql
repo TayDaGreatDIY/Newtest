@@ -6,6 +6,10 @@
 -- - Post Likes
 -- - Post Comments
 -- - Feed functionality
+--
+-- PREREQUISITES:
+-- - Must run mvp_phase1.sql first (defines handle_updated_at function)
+-- - Supabase project must be set up with authentication enabled
 
 -- =====================================================
 -- 1. POSTS TABLE
@@ -194,6 +198,7 @@ CREATE TRIGGER on_post_comment_change
   EXECUTE FUNCTION public.update_post_comments_count();
 
 -- Trigger for updated_at on posts
+-- Note: handle_updated_at() is defined in mvp_phase1.sql
 DROP TRIGGER IF EXISTS on_post_updated ON public.posts;
 CREATE TRIGGER on_post_updated
   BEFORE UPDATE ON public.posts
