@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { GlassCard, SectionHeader, GradientButton, EmptyState, Modal, ImageUpload } from '../components';
+import { GlassCard, SectionHeader, GradientButton, EmptyState, Modal, ImageUpload, useToast } from '../components';
 import { getFeedPosts, likePost, unlikePost, createPost, uploadPostImage, subscribeToPostChanges, subscribeToPostLikeChanges } from '../lib/posts';
 import type { PostWithUser } from '../types/db';
 
@@ -12,6 +12,7 @@ export const Feed: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const { showToast } = useToast();
 
   const loadPosts = useCallback(async () => {
     setLoading(true);
@@ -25,6 +26,7 @@ export const Feed: React.FC = () => {
   }, []);
 
   // Load posts on mount
+  // This is a legitimate use of calling setState in an effect - we're fetching initial data
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     loadPosts();
@@ -49,7 +51,7 @@ export const Feed: React.FC = () => {
   const handleLike = async (postId: string, isLiked: boolean) => {
     const { error } = isLiked ? await unlikePost(postId) : await likePost(postId);
     if (error) {
-      alert(`Failed to ${isLiked ? 'unlike' : 'like'} post: ${error}`);
+      showToast(`Failed to ${isLiked ? 'unlike' : 'like'} post: ${error}`, 'error');
     } else {
       // Optimistic update
       setPosts(posts.map(post => 
@@ -66,7 +68,7 @@ export const Feed: React.FC = () => {
 
   const handleCreatePost = async () => {
     if (!newPostContent.trim()) {
-      alert('Please enter some content for your post');
+      showToast('Please enter some content for your post', 'warning');
       return;
     }
 
@@ -77,7 +79,7 @@ export const Feed: React.FC = () => {
     if (selectedImage) {
       const { data, error } = await uploadPostImage(selectedImage);
       if (error) {
-        alert(`Failed to upload image: ${error}`);
+        showToast(`Failed to upload image: ${error}`, 'error');
         setCreating(false);
         return;
       }
@@ -94,8 +96,9 @@ export const Feed: React.FC = () => {
     setCreating(false);
 
     if (error) {
-      alert(`Failed to create post: ${error}`);
+      showToast(`Failed to create post: ${error}`, 'error');
     } else {
+      showToast('Post created successfully!', 'success');
       // Reset form and close modal
       setNewPostContent('');
       setSelectedImage(null);

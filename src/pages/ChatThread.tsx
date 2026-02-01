@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { GradientButton } from '../components';
+import { GradientButton, useToast } from '../components';
 import { getThreadMessages, sendMessage, markThreadAsRead, subscribeToThreadMessages } from '../lib/messages';
 import { supabase } from '../lib/supabaseClient';
 import type { MessageWithSender } from '../types/db';
@@ -16,6 +16,7 @@ export const ChatThread: React.FC = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [otherParticipantName, setOtherParticipantName] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { showToast } = useToast();
 
   // Get current user ID
   useEffect(() => {
@@ -86,7 +87,7 @@ export const ChatThread: React.FC = () => {
     setSending(false);
 
     if (error) {
-      alert(`Failed to send message: ${error}`);
+      showToast(`Failed to send message: ${error}`, 'error');
     } else {
       setMessageInput('');
       // Messages will be updated via real-time subscription

@@ -1,9 +1,17 @@
 import OpenAI from 'openai';
 
-// Initialize OpenAI client
+// ⚠️ SECURITY WARNING: Development Only Configuration ⚠️
+// This configuration exposes the OpenAI API key in the browser.
+// For production deployments, this MUST be replaced with one of:
+// 1. A Supabase Edge Function that calls OpenAI server-side
+// 2. A separate backend API endpoint that proxies OpenAI requests
+// 3. A serverless function (AWS Lambda, Vercel Functions, etc.)
+//
+// The dangerouslyAllowBrowser option should NEVER be used in production.
+// Exposed API keys can be extracted and abused, leading to unauthorized charges.
 const openai = new OpenAI({
   apiKey: import.meta.env.VITE_OPENAI_API_KEY || '',
-  dangerouslyAllowBrowser: true, // Note: In production, use a backend API
+  dangerouslyAllowBrowser: true, // ⚠️ DEVELOPMENT ONLY - See warning above
 });
 
 // System prompt for the basketball coach

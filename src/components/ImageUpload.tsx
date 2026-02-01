@@ -14,6 +14,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   disabled = false,
 }) => {
   const [dragActive, setDragActive] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleDrag = (e: React.DragEvent) => {
@@ -48,15 +49,17 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   };
 
   const handleFile = (file: File) => {
+    setError(null);
+
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+      setError('Please select an image file');
       return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image size should be less than 5MB');
+      setError('Image size should be less than 5MB');
       return;
     }
 
@@ -92,35 +95,40 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   }
 
   return (
-    <div
-      className={`relative w-full rounded-xl border-2 border-dashed transition-colors ${
-        dragActive
-          ? 'border-purple-500 bg-purple-500/10'
-          : 'border-white/20 bg-white/5'
-      } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-      onDragEnter={handleDrag}
-      onDragLeave={handleDrag}
-      onDragOver={handleDrag}
-      onDrop={handleDrop}
-      onClick={handleButtonClick}
-    >
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleChange}
-        disabled={disabled}
-        className="hidden"
-      />
-      <div className="p-8 text-center">
-        <div className="text-4xl mb-3">📷</div>
-        <p className="text-sm text-gray-400 mb-2">
-          Click to upload or drag and drop
-        </p>
-        <p className="text-xs text-gray-500">
-          PNG, JPG, GIF up to 5MB
-        </p>
+    <div>
+      <div
+        className={`relative w-full rounded-xl border-2 border-dashed transition-colors ${
+          dragActive
+            ? 'border-purple-500 bg-purple-500/10'
+            : 'border-white/20 bg-white/5'
+        } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+        onDragEnter={handleDrag}
+        onDragLeave={handleDrag}
+        onDragOver={handleDrag}
+        onDrop={handleDrop}
+        onClick={handleButtonClick}
+      >
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleChange}
+          disabled={disabled}
+          className="hidden"
+        />
+        <div className="p-8 text-center">
+          <div className="text-4xl mb-3">📷</div>
+          <p className="text-sm text-gray-400 mb-2">
+            Click to upload or drag and drop
+          </p>
+          <p className="text-xs text-gray-500">
+            PNG, JPG, GIF up to 5MB
+          </p>
+        </div>
       </div>
+      {error && (
+        <p className="text-sm text-red-400 mt-2">⚠️ {error}</p>
+      )}
     </div>
   );
 };
