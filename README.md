@@ -12,19 +12,40 @@ The app is deployed automatically via GitHub Actions on every push to the `main`
 
 - ⚡️ Lightning-fast with Vite
 - 📱 Mobile-first responsive design
-- 🎨 Styled with Tailwind CSS
+- 🎨 Styled with Tailwind CSS (2026 glassmorphism UI)
 - 🔄 Client-side routing with React Router
 - 📦 Installable as PWA (Progressive Web App)
 - 🍎 iOS "Add to Home Screen" support
 - 🔒 Offline-ready with Service Worker
 - 🎯 TypeScript for type safety
+- 🔐 Supabase authentication with email/password
+- 👤 User profiles with editable display names
+- 🛡️ Row-level security (RLS) for data protection
 
 ## 📋 Prerequisites
 
 - Node.js 18.x or higher
 - npm or yarn package manager
+- A Supabase account (free tier available at [https://supabase.com](https://supabase.com))
+
+## 🔐 Authentication
+
+This app uses Supabase for authentication and user management. All routes under `/app/*` are protected and require authentication.
+
+### Features:
+- Email/password sign up and sign in
+- Protected routes with automatic redirects
+- User profiles with editable display names
+- Secure session management
+- Row-level security (RLS) on database
 
 ## 🛠️ Local Development
+
+### Prerequisites
+
+- Node.js 18.x or higher
+- npm or yarn package manager
+- A Supabase account and project (for authentication features)
 
 ### Installation
 
@@ -37,6 +58,23 @@ cd Newtest
 2. Install dependencies:
 ```bash
 npm install
+```
+
+3. Set up Supabase:
+   - Create a free account at [https://supabase.com](https://supabase.com)
+   - Create a new project
+   - Go to Project Settings > API to find your project URL and anon key
+   - Run the SQL in `supabase/schema.sql` in the Supabase SQL Editor (Dashboard > SQL Editor)
+
+4. Create a `.env` file in the root directory with your Supabase credentials:
+```bash
+cp .env.example .env
+```
+
+5. Edit `.env` and add your Supabase credentials:
+```
+VITE_SUPABASE_URL=your-project-url
+VITE_SUPABASE_ANON_KEY=your-anon-key
 ```
 
 ### Running Locally
@@ -225,9 +263,12 @@ Newtest/
 │   ├── layout/          # Layout components
 │   ├── pages/           # Page components
 │   ├── data/            # Data models and mock data
+│   ├── lib/             # Utilities (Supabase client, Auth context)
 │   ├── App.tsx          # Main app component with routing
 │   ├── main.tsx         # App entry point
 │   └── index.css        # Global styles
+├── supabase/
+│   └── schema.sql       # Database schema and RLS policies
 ├── index.html           # HTML template
 ├── vite.config.ts       # Vite & PWA configuration
 ├── tailwind.config.js   # Tailwind CSS configuration
