@@ -194,7 +194,10 @@ export const Profile: React.FC = () => {
           <span className="text-gray-400">›</span>
         </GlassCard>
 
-        <GlassCard className="flex items-center justify-between cursor-pointer hover:bg-white/10 transition-colors">
+        <GlassCard 
+          className="flex items-center justify-between cursor-pointer hover:bg-white/10 transition-colors"
+          onClick={() => navigate('/app/profile/settings')}
+        >
           <div className="flex items-center gap-3">
             <span className="text-xl">⚙️</span>
             <span className="font-medium">Account Settings</span>
@@ -202,7 +205,10 @@ export const Profile: React.FC = () => {
           <span className="text-gray-400">›</span>
         </GlassCard>
 
-        <GlassCard className="flex items-center justify-between cursor-pointer hover:bg-white/10 transition-colors">
+        <GlassCard 
+          className="flex items-center justify-between cursor-pointer hover:bg-white/10 transition-colors"
+          onClick={() => navigate('/app/profile/notifications')}
+        >
           <div className="flex items-center gap-3">
             <span className="text-xl">🔔</span>
             <span className="font-medium">Notifications</span>
@@ -210,7 +216,10 @@ export const Profile: React.FC = () => {
           <span className="text-gray-400">›</span>
         </GlassCard>
 
-        <GlassCard className="flex items-center justify-between cursor-pointer hover:bg-white/10 transition-colors">
+        <GlassCard 
+          className="flex items-center justify-between cursor-pointer hover:bg-white/10 transition-colors"
+          onClick={() => navigate('/app/profile/appearance')}
+        >
           <div className="flex items-center gap-3">
             <span className="text-xl">🎨</span>
             <span className="font-medium">Appearance</span>
@@ -218,7 +227,10 @@ export const Profile: React.FC = () => {
           <span className="text-gray-400">›</span>
         </GlassCard>
 
-        <GlassCard className="flex items-center justify-between cursor-pointer hover:bg-white/10 transition-colors">
+        <GlassCard 
+          className="flex items-center justify-between cursor-pointer hover:bg-white/10 transition-colors"
+          onClick={() => navigate('/app/profile/about')}
+        >
           <div className="flex items-center gap-3">
             <span className="text-xl">ℹ️</span>
             <span className="font-medium">About M2DG</span>

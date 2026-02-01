@@ -11,3 +11,7 @@ export { Profile } from './Profile';
 export { ThinkingCorner } from './ThinkingCorner';
 export { PostDetail } from './PostDetail';
 export { CreatePost } from './CreatePost';
+export { Settings } from './Settings';
+export { Notifications } from './Notifications';
+export { Appearance } from './Appearance';
+export { AboutM2DG } from './AboutM2DG';
