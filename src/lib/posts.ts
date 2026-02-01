@@ -52,7 +52,8 @@ export async function getFeedPosts(limit = 50, offset = 0) {
     return { data: posts, error: null };
   } catch (error) {
     console.error('Error fetching feed posts:', error);
-    return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
+    const errorMessage = error instanceof Error ? error.message : 'Failed to load feed. Please try again.';
+    return { data: null, error: errorMessage };
   }
 }
 
@@ -80,7 +81,8 @@ export async function createPost(input: CreatePostInput) {
     return { data: data as Post, error: null };
   } catch (error) {
     console.error('Error creating post:', error);
-    return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
+    const errorMessage = error instanceof Error ? error.message : 'Failed to create post. Please try again.';
+    return { data: null, error: errorMessage };
   }
 }
 
@@ -98,7 +100,8 @@ export async function deletePost(postId: string) {
     return { error: null };
   } catch (error) {
     console.error('Error deleting post:', error);
-    return { error: error instanceof Error ? error.message : 'Unknown error' };
+    const errorMessage = error instanceof Error ? error.message : 'Failed to delete post. Please try again.';
+    return { error: errorMessage };
   }
 }
 
@@ -121,7 +124,8 @@ export async function likePost(postId: string) {
     return { error: null };
   } catch (error) {
     console.error('Error liking post:', error);
-    return { error: error instanceof Error ? error.message : 'Unknown error' };
+    const errorMessage = error instanceof Error ? error.message : 'Failed to like post. Please try again.';
+    return { error: errorMessage };
   }
 }
 
@@ -143,7 +147,8 @@ export async function unlikePost(postId: string) {
     return { error: null };
   } catch (error) {
     console.error('Error unliking post:', error);
-    return { error: error instanceof Error ? error.message : 'Unknown error' };
+    const errorMessage = error instanceof Error ? error.message : 'Failed to unlike post. Please try again.';
+    return { error: errorMessage };
   }
 }
 
@@ -185,7 +190,8 @@ export async function getPostComments(postId: string, limit = 50, offset = 0) {
     return { data: comments, error: null };
   } catch (error) {
     console.error('Error fetching post comments:', error);
-    return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
+    const errorMessage = error instanceof Error ? error.message : 'Failed to load comments. Please try again.';
+    return { data: null, error: errorMessage };
   }
 }
 
@@ -211,7 +217,8 @@ export async function addPostComment(postId: string, content: string) {
     return { data: data as PostComment, error: null };
   } catch (error) {
     console.error('Error adding comment:', error);
-    return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
+    const errorMessage = error instanceof Error ? error.message : 'Failed to add comment. Please try again.';
+    return { data: null, error: errorMessage };
   }
 }
 
@@ -244,7 +251,8 @@ export async function uploadPostImage(file: File) {
     return { data: { path: data.path, url: publicUrl }, error: null };
   } catch (error) {
     console.error('Error uploading image:', error);
-    return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
+    const errorMessage = error instanceof Error ? error.message : 'Failed to upload image. Please try again.';
+    return { data: null, error: errorMessage };
   }
 }
 
@@ -311,7 +319,8 @@ export async function repostPost(postId: string) {
     return { error: null };
   } catch (error) {
     console.error('Error reposting post:', error);
-    return { error: error instanceof Error ? error.message : 'Unknown error' };
+    const errorMessage = error instanceof Error ? error.message : 'Failed to repost. Please try again.';
+    return { error: errorMessage };
   }
 }
 
@@ -333,7 +342,8 @@ export async function unrepostPost(postId: string) {
     return { error: null };
   } catch (error) {
     console.error('Error unreposting post:', error);
-    return { error: error instanceof Error ? error.message : 'Unknown error' };
+    const errorMessage = error instanceof Error ? error.message : 'Failed to unrepost. Please try again.';
+    return { error: errorMessage };
   }
 }
 
@@ -370,7 +380,8 @@ export async function getPostReposts(postId: string) {
     return { data: reposts, error: null };
   } catch (error) {
     console.error('Error fetching post reposts:', error);
-    return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
+    const errorMessage = error instanceof Error ? error.message : 'Failed to load reposts. Please try again.';
+    return { data: null, error: errorMessage };
   }
 }
 
@@ -396,23 +407,25 @@ export async function getPost(postId: string) {
     let isRepostedByMe = false;
 
     if (user) {
-      const { data: likeData } = await supabase
+      const { data: likeData, error: likeError } = await supabase
         .from('post_likes')
         .select('id')
         .eq('post_id', postId)
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       
-      isLikedByMe = !!likeData;
+      // Only set to true if we successfully got data and no error
+      isLikedByMe = !likeError && !!likeData;
 
-      const { data: repostData } = await supabase
+      const { data: repostData, error: repostError } = await supabase
         .from('post_reposts')
         .select('id')
         .eq('post_id', postId)
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       
-      isRepostedByMe = !!repostData;
+      // Only set to true if we successfully got data and no error
+      isRepostedByMe = !repostError && !!repostData;
     }
 
     const post: PostWithUser = {
@@ -435,7 +448,8 @@ export async function getPost(postId: string) {
     return { data: post, error: null };
   } catch (error) {
     console.error('Error fetching post:', error);
-    return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
+    const errorMessage = error instanceof Error ? error.message : 'Failed to load post. Please try again.';
+    return { data: null, error: errorMessage };
   }
 }
 
