@@ -31,28 +31,45 @@ export async function checkInToCourt(input: CreateCheckinInput) {
  * Get check-ins for a court
  */
 export async function getCourtCheckins(courtId: string, limit = 20) {
-  const { data, error } = await supabase
+  // Fetch check-ins
+  const { data: checkins, error: checkinsError } = await supabase
     .from('court_checkins')
-    .select(`
-      *,
-      profiles:user_id (
-        id,
-        display_name
-      )
-    `)
+    .select('*')
     .eq('court_id', courtId)
     .order('checked_in_at', { ascending: false })
     .limit(limit);
 
-  if (error) {
-    return { data: null, error };
+  if (checkinsError) {
+    return { data: null, error: checkinsError };
   }
 
+  if (!checkins || checkins.length === 0) {
+    return { data: [], error: null };
+  }
+
+  // Get unique user IDs
+  const userIds = [...new Set(checkins.map(c => c.user_id))];
+
+  // Fetch profiles for these users
+  const { data: profiles, error: profilesError } = await supabase
+    .from('profiles')
+    .select('id, display_name')
+    .in('id', userIds);
+
+  if (profilesError) {
+    console.warn('Error fetching profiles:', profilesError);
+  }
+
+  // Create a map of user_id to display_name
+  const profileMap = new Map(
+    (profiles || []).map(p => [p.id, p.display_name])
+  );
+
   // Transform the data to match CourtCheckinWithUser type
-  const checkinsWithUser = data?.map(checkin => ({
+  const checkinsWithUser: CourtCheckinWithUser[] = checkins.map(checkin => ({
     ...checkin,
-    user_display_name: checkin.profiles?.display_name || null,
-  })) as CourtCheckinWithUser[];
+    user_display_name: profileMap.get(checkin.user_id) || null,
+  }));
 
   return { data: checkinsWithUser, error: null };
 }
@@ -61,21 +78,41 @@ export async function getCourtCheckins(courtId: string, limit = 20) {
  * Get user's check-ins
  */
 export async function getUserCheckins(userId: string, limit = 50) {
-  const { data, error } = await supabase
+  // Fetch check-ins
+  const { data: checkins, error: checkinsError } = await supabase
     .from('court_checkins')
-    .select(`
-      *,
-      courts:court_id (
-        id,
-        name,
-        location
-      )
-    `)
+    .select('*')
     .eq('user_id', userId)
     .order('checked_in_at', { ascending: false })
     .limit(limit);
 
-  return { data, error };
+  if (checkinsError) {
+    return { data: null, error: checkinsError };
+  }
+
+  if (!checkins || checkins.length === 0) {
+    return { data: [], error: null };
+  }
+
+  // Get unique court IDs
+  const courtIds = [...new Set(checkins.map(c => c.court_id))];
+
+  // Fetch courts
+  const { data: courts } = await supabase
+    .from('courts')
+    .select('id, name, location')
+    .in('id', courtIds);
+
+  // Create map
+  const courtMap = new Map((courts || []).map(c => [c.id, { name: c.name, location: c.location }]));
+
+  // Transform data
+  const checkinsWithCourts = checkins.map(checkin => ({
+    ...checkin,
+    courts: courtMap.get(checkin.court_id) || null,
+  }));
+
+  return { data: checkinsWithCourts, error: null };
 }
 
 /**
@@ -118,24 +155,43 @@ export async function hasCheckedInToday(courtId: string) {
  * Get recent check-ins across all courts (for feed)
  */
 export async function getRecentCheckins(limit = 20) {
-  const { data, error } = await supabase
+  // Fetch check-ins
+  const { data: checkins, error: checkinsError } = await supabase
     .from('court_checkins')
-    .select(`
-      *,
-      profiles:user_id (
-        id,
-        display_name
-      ),
-      courts:court_id (
-        id,
-        name,
-        location
-      )
-    `)
+    .select('*')
     .order('checked_in_at', { ascending: false })
     .limit(limit);
 
-  return { data, error };
+  if (checkinsError) {
+    return { data: null, error: checkinsError };
+  }
+
+  if (!checkins || checkins.length === 0) {
+    return { data: [], error: null };
+  }
+
+  // Get unique user IDs and court IDs
+  const userIds = [...new Set(checkins.map(c => c.user_id))];
+  const courtIds = [...new Set(checkins.map(c => c.court_id))];
+
+  // Fetch profiles and courts
+  const [{ data: profiles }, { data: courts }] = await Promise.all([
+    supabase.from('profiles').select('id, display_name').in('id', userIds),
+    supabase.from('courts').select('id, name, location').in('id', courtIds),
+  ]);
+
+  // Create maps
+  const profileMap = new Map((profiles || []).map(p => [p.id, p.display_name]));
+  const courtMap = new Map((courts || []).map(c => [c.id, { name: c.name, location: c.location }]));
+
+  // Transform data
+  const checkinsWithDetails = checkins.map(checkin => ({
+    ...checkin,
+    profiles: { display_name: profileMap.get(checkin.user_id) || null },
+    courts: courtMap.get(checkin.court_id) || null,
+  }));
+
+  return { data: checkinsWithDetails, error: null };
 }
 
 /**
