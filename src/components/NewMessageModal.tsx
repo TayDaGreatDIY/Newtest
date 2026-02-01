@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GlassCard, GradientButton } from './index';
 import { searchUsers, getAllUsers, getOrCreateThread } from '../lib/messages';
@@ -16,21 +16,8 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({ isOpen, onClos
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
 
-  useEffect(() => {
-    if (isOpen) {
-      loadUsers();
-    }
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (searchQuery.trim()) {
-      handleSearch();
-    } else {
-      loadUsers();
-    }
-  }, [searchQuery]);
-
-  const loadUsers = async () => {
+  // Move these above useEffect hooks
+  const loadUsers = useCallback(async () => {
     setLoading(true);
     setError(null);
     const { data, error } = await getAllUsers(50);
@@ -40,9 +27,9 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({ isOpen, onClos
       setUsers(data || []);
     }
     setLoading(false);
-  };
+  }, []);
 
-  const handleSearch = async () => {
+  const handleSearch = useCallback(async () => {
     if (!searchQuery.trim()) {
       loadUsers();
       return;
@@ -57,7 +44,24 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({ isOpen, onClos
       setUsers(data || []);
     }
     setLoading(false);
-  };
+  }, [searchQuery, loadUsers]);
+
+  // Then keep your useEffect hooks as they are:
+  useEffect(() => {
+    if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      loadUsers();
+    }
+  }, [isOpen, loadUsers]);
+
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      handleSearch();
+    } else {
+      loadUsers();
+    }
+  }, [searchQuery, handleSearch, loadUsers]);
 
   const handleSelectUser = async (userId: string) => {
     setCreating(true);

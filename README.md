@@ -111,6 +111,7 @@ npm install
 ```bash
 VITE_SUPABASE_URL=your-project-url
 VITE_SUPABASE_ANON_KEY=your-anon-key
+VITE_OPENAI_API_KEY=your-openai-api-key  # Optional, for AI Coach feature
 ```
 
 5. Run database migrations:
@@ -124,7 +125,7 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
    - Go to Storage section in Supabase Dashboard
    - Create a new bucket named `post-images`
    - Make it public
-   - The storage policies are included in the migration SQL
+   - Set up storage policies (see instructions in `SUPABASE_SETUP.md`)
 
 7. (Optional but recommended) Enable Realtime:
    - Go to Database → Replication in Supabase Dashboard
@@ -138,7 +139,9 @@ npm run dev
 
 The app will be available at `http://localhost:5173`
 
-   > 📖 **Detailed Setup Guide:** See [ENV_SETUP.md](ENV_SETUP.md) for comprehensive environment configuration instructions, including GitHub Actions secrets setup.
+   > 📖 **Complete Setup Guide:** See [SUPABASE_SETUP.md](SUPABASE_SETUP.md) for the complete SQL setup guide, including OpenAI API key configuration for GitHub Actions.
+   >
+   > 📖 **Environment Setup:** See [ENV_SETUP.md](ENV_SETUP.md) for detailed environment configuration instructions.
 
 ### Build for Production
 
