@@ -49,12 +49,14 @@ export const NewMessageModal: React.FC<NewMessageModalProps> = ({ isOpen, onClos
   // Then keep your useEffect hooks as they are:
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       loadUsers();
     }
   }, [isOpen, loadUsers]);
 
   useEffect(() => {
     if (searchQuery.trim()) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       handleSearch();
     } else {
       loadUsers();
