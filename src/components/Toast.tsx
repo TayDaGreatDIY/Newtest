@@ -1,3 +1,5 @@
+// Disable react-refresh warning: This file exports both a component (ToastProvider)
+// and a hook (useToast). This is intentional as they work together as a cohesive system.
 /* eslint-disable react-refresh/only-export-components */
 import React, { createContext, useContext, useState, useCallback } from 'react';
 

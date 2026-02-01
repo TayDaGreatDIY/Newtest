@@ -41,7 +41,7 @@ export async function getCoachResponse(
   try {
     // Check if API key is configured
     const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-    if (!apiKey || apiKey === '' || apiKey === 'your-openai-api-key') {
+    if (!apiKey || apiKey.trim() === '') {
       return {
         response: '',
         error: 'OpenAI API key is not configured. Please add VITE_OPENAI_API_KEY to your .env file.',
