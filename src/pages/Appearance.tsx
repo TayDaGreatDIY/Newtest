@@ -43,10 +43,9 @@ export const Appearance: React.FC = () => {
   };
 
   // Load saved preferences on mount
-  // This is a legitimate use of calling setState in an effect - we're loading initial data from localStorage
   useEffect(() => {
-    const savedTheme = localStorage.getItem('m2dg_theme') as 'dark' | 'light' || 'dark';
-    const savedAccentColor = localStorage.getItem('m2dg_accent_color') || 'purple';
+    const savedTheme = (localStorage.getItem('m2dg_theme') ?? 'dark') as 'dark' | 'light';
+    const savedAccentColor = localStorage.getItem('m2dg_accent_color') ?? 'purple';
     
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setAppliedTheme(savedTheme);
@@ -59,7 +58,6 @@ export const Appearance: React.FC = () => {
   }, []);
 
   // Check if there are unsaved changes
-  // This is a legitimate use of calling setState in an effect - we're computing derived state
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setHasUnsavedChanges(
