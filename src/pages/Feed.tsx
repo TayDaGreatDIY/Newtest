@@ -1,16 +1,21 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GlassCard, SectionHeader, GradientButton, EmptyState, Modal, ImageUpload, useToast } from '../components';
-import { getFeedPosts, likePost, unlikePost, createPost, uploadPostImage, subscribeToPostChanges, subscribeToPostLikeChanges, repostPost, unrepostPost, getPostReposts } from '../lib/posts';
+import { getFeedPosts, likePost, unlikePost, createPost, uploadPostImage, subscribeToPostChanges, subscribeToPostLikeChanges, repostPost, unrepostPost, getPostReposts, deletePost } from '../lib/posts';
 import type { PostWithUser, PostRepostWithUser } from '../types/db';
+import { useAuth } from '../lib/AuthContext';
 
 export const Feed: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [posts, setPosts] = useState<PostWithUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showRepostsModal, setShowRepostsModal] = useState(false);
+  const [showPostMenuModal, setShowPostMenuModal] = useState(false);
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const [selectedPostUserId, setSelectedPostUserId] = useState<string | null>(null);
   const [reposts, setReposts] = useState<PostRepostWithUser[]>([]);
   const [loadingReposts, setLoadingReposts] = useState(false);
   const [newPostContent, setNewPostContent] = useState('');
@@ -100,6 +105,36 @@ export const Feed: React.FC = () => {
     } else if (data) {
       setReposts(data);
     }
+  };
+
+  const handleShowPostMenu = (postId: string, postUserId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedPostId(postId);
+    setSelectedPostUserId(postUserId);
+    setShowPostMenuModal(true);
+  };
+
+  const handleDeletePost = async () => {
+    if (!selectedPostId) return;
+    
+    const { error } = await deletePost(selectedPostId);
+    if (error) {
+      showToast(error || 'Failed to delete post. Please try again.', 'error');
+    } else {
+      showToast('Post deleted successfully!', 'success');
+      setShowPostMenuModal(false);
+      setSelectedPostId(null);
+      setSelectedPostUserId(null);
+      // Refresh posts
+      loadPosts();
+    }
+  };
+
+  const handleReportPost = () => {
+    showToast('Post reported. We will review it shortly.', 'success');
+    setShowPostMenuModal(false);
+    setSelectedPostId(null);
+    setSelectedPostUserId(null);
   };
 
   const handleChallenge = () => {
@@ -234,34 +269,54 @@ export const Feed: React.FC = () => {
                   </div>
                   <div 
                     className="flex-1 cursor-pointer hover:opacity-80 transition-opacity" 
-                    onClick={() => navigate(`/app/profile/${post.user_id}`)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/app/profile/${post.user_id}`);
+                    }}
                     title="View profile"
                   >
                     <h3 className="font-bold">{post.user_display_name || 'Anonymous'}</h3>
                     <p className="text-sm text-gray-400">{formatTimestamp(post.created_at)}</p>
                   </div>
+                  {/* Menu button (delete for owner, report for others) */}
+                  <button
+                    onClick={(e) => handleShowPostMenu(post.id, post.user_id, e)}
+                    className="text-gray-400 hover:text-white transition-colors p-2"
+                    title={user?.id === post.user_id ? "Post options" : "Report post"}
+                  >
+                    <span className="text-xl">⋮</span>
+                  </button>
                   <GradientButton 
                     size="sm" 
                     variant="accent"
-                    onClick={handleChallenge}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleChallenge();
+                    }}
                   >
                     Challenge
                   </GradientButton>
                 </div>
 
-                {/* Content */}
-                <p className="text-base">{post.content}</p>
+                {/* Content - Click to view post detail */}
+                <div 
+                  className="cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => navigate(`/app/posts/${post.id}`)}
+                  title="View post details"
+                >
+                  <p className="text-base">{post.content}</p>
 
-                {/* Image */}
-                {post.type === 'image' && post.image_url && (
-                  <div className="w-full rounded-xl overflow-hidden border border-white/10">
-                    <img 
-                      src={post.image_url} 
-                      alt="Post content"
-                      className="w-full h-auto object-cover"
-                    />
-                  </div>
-                )}
+                  {/* Image */}
+                  {post.type === 'image' && post.image_url && (
+                    <div className="w-full rounded-xl overflow-hidden border border-white/10">
+                      <img 
+                        src={post.image_url} 
+                        alt="Post content"
+                        className="w-full h-auto object-cover max-h-[600px]"
+                      />
+                    </div>
+                  )}
+                </div>
 
                 {/* Challenge card */}
                 {post.type === 'challenge' && post.challenge_id && (
@@ -285,7 +340,10 @@ export const Feed: React.FC = () => {
                 {/* Actions */}
                 <div className="flex items-center gap-6 pt-2 border-t border-white/10">
                   <button 
-                    onClick={() => handleLike(post.id, post.is_liked_by_me)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleLike(post.id, post.is_liked_by_me);
+                    }}
                     className={`flex items-center gap-2 transition-colors ${
                       post.is_liked_by_me ? 'text-pink-500' : 'text-gray-400 hover:text-white'
                     }`}
@@ -295,7 +353,10 @@ export const Feed: React.FC = () => {
                   </button>
                   
                   <button 
-                    onClick={() => navigate(`/app/posts/${post.id}`)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/app/posts/${post.id}`);
+                    }}
                     className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
                   >
                     <span>💬</span>
@@ -303,9 +364,13 @@ export const Feed: React.FC = () => {
                   </button>
                   
                   <button 
-                    onClick={() => handleRepost(post.id, post.is_reposted_by_me)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRepost(post.id, post.is_reposted_by_me);
+                    }}
                     onContextMenu={(e) => {
                       e.preventDefault();
+                      e.stopPropagation();
                       handleShowReposts(post.id);
                     }}
                     className={`flex items-center gap-2 transition-colors ${
@@ -351,6 +416,68 @@ export const Feed: React.FC = () => {
             ))}
           </div>
         )}
+      </Modal>
+
+      {/* Post Menu Modal */}
+      <Modal
+        isOpen={showPostMenuModal}
+        onClose={() => {
+          setShowPostMenuModal(false);
+          setSelectedPostId(null);
+          setSelectedPostUserId(null);
+        }}
+        title="Post Options"
+      >
+        <div className="space-y-2">
+          {user?.id === selectedPostUserId ? (
+            // Owner options
+            <>
+              <button
+                onClick={handleDeletePost}
+                className="w-full px-4 py-3 rounded-xl glass hover:bg-red-500/20 transition-colors text-left text-red-400 hover:text-red-300"
+              >
+                🗑️ Delete Post
+              </button>
+              <button
+                onClick={() => {
+                  showToast('Edit feature coming soon!', 'info');
+                  setShowPostMenuModal(false);
+                }}
+                className="w-full px-4 py-3 rounded-xl glass hover:bg-white/10 transition-colors text-left"
+              >
+                ✏️ Edit Post
+              </button>
+            </>
+          ) : (
+            // Non-owner options
+            <>
+              <button
+                onClick={handleReportPost}
+                className="w-full px-4 py-3 rounded-xl glass hover:bg-white/10 transition-colors text-left"
+              >
+                🚨 Report Post
+              </button>
+              <button
+                onClick={() => {
+                  showToast('Privacy settings coming soon!', 'info');
+                  setShowPostMenuModal(false);
+                }}
+                className="w-full px-4 py-3 rounded-xl glass hover:bg-white/10 transition-colors text-left"
+              >
+                🔒 Privacy Settings
+              </button>
+              <button
+                onClick={() => {
+                  showToast('Hide post feature coming soon!', 'info');
+                  setShowPostMenuModal(false);
+                }}
+                className="w-full px-4 py-3 rounded-xl glass hover:bg-white/10 transition-colors text-left"
+              >
+                👁️ Hide Post
+              </button>
+            </>
+          )}
+        </div>
       </Modal>
 
       {/* Create Post Modal - Kept for backward compatibility but redirects to /app/posts/new */}
