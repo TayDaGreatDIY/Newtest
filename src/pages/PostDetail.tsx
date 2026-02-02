@@ -132,8 +132,8 @@ export const PostDetail: React.FC = () => {
       showToast('Post updated successfully!', 'success');
       setShowEditModal(false);
       setShowPostMenuModal(false);
-      // Update the local post state
-      setPost({ ...post, content: editContent.trim() });
+      // Update the local post state with all fields from server response
+      setPost({ ...post, content: data.content, updated_at: data.updated_at });
     }
   };
 

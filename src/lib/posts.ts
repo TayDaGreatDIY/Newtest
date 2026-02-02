@@ -101,7 +101,6 @@ export async function updatePost(postId: string, content: string) {
       .from('posts')
       .update({
         content,
-        updated_at: new Date().toISOString(),
       })
       .eq('id', postId)
       .eq('user_id', user.id) // Ensure user owns the post
