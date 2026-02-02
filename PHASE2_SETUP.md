@@ -77,14 +77,14 @@ CREATE POLICY "Authenticated users can upload post images"
 ```sql
 CREATE POLICY "Users can update their own images"
   ON storage.objects FOR UPDATE
-  USING (bucket_id = 'post-images' AND auth.uid()::text = owner);
+  USING (bucket_id = 'post-images' AND auth.uid() = owner);
 ```
 
 **Policy 4: Allow users to delete their own images**
 ```sql
 CREATE POLICY "Users can delete their own images"
   ON storage.objects FOR DELETE
-  USING (bucket_id = 'post-images' AND auth.uid()::text = owner);
+  USING (bucket_id = 'post-images' AND auth.uid() = owner);
 ```
 
 ### Step 1.4: Enable Realtime

@@ -7,9 +7,20 @@
 -- Run this if you're getting RLS policy violations when
 -- uploading images to posts.
 --
--- NOTE: This uses correct UUID comparison (auth.uid() = owner)
--- instead of text casting (auth.uid()::text = owner) which
--- would cause "operator does not exist: text = uuid" errors.
+-- IMPORTANT - UUID Type Casting Fix:
+-- This file uses correct UUID comparison (auth.uid() = owner)
+-- instead of incorrect text casting (auth.uid()::text = owner).
+--
+-- PROBLEM with text casting:
+-- - auth.uid()::text converts UUID to text
+-- - owner column is UUID type
+-- - PostgreSQL cannot compare text with UUID directly
+-- - Results in error: "operator does not exist: text = uuid"
+--
+-- SOLUTION:
+-- - Compare UUIDs directly without casting
+-- - Both auth.uid() and owner are UUIDs
+-- - Direct comparison works correctly
 -- =====================================================
 
 -- First, ensure the bucket exists
@@ -50,16 +61,18 @@ CREATE POLICY "Authenticated users can upload post images"
 -- Policy: Users can update their own images
 CREATE POLICY "Users can update their own images"
   ON storage.objects FOR UPDATE
+  TO authenticated
   USING (
-    bucket_id = 'post-images' AND 
+    bucket_id = 'post-images' AND
     auth.uid() = owner
   );
 
 -- Policy: Users can delete their own images
 CREATE POLICY "Users can delete their own images"
   ON storage.objects FOR DELETE
+  TO authenticated
   USING (
-    bucket_id = 'post-images' AND 
+    bucket_id = 'post-images' AND
     auth.uid() = owner
   );
 
@@ -74,6 +87,16 @@ CREATE POLICY "Users can delete their own images"
 -- 2. Check policies:
 -- SELECT * FROM pg_policies WHERE tablename = 'objects' AND policyname LIKE '%post images%';
 --
+-- =====================================================
+-- NOTES
+-- =====================================================
+-- 1. The 'owner' column in storage.objects is UUID type
+-- 2. The auth.uid() function returns a UUID
+-- 3. Direct UUID comparison is the correct approach
+-- 4. The TO authenticated clause ensures only authenticated users can execute
+-- 5. Alternative approaches (but direct comparison is cleaner):
+--    - Cast both sides: auth.uid()::text = owner::text
+--    - Use subquery: owner = (SELECT auth.uid())
 -- =====================================================
 -- MIGRATION COMPLETE
 -- =====================================================

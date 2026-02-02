@@ -35,7 +35,7 @@ CREATE POLICY "Users can update their own images"
   ON storage.objects FOR UPDATE
   USING (
     bucket_id = 'post-images' AND 
-    auth.uid()::text = owner
+    auth.uid() = owner
   );
 
 -- Policy: Users can delete their own images
@@ -43,7 +43,7 @@ CREATE POLICY "Users can delete their own images"
   ON storage.objects FOR DELETE
   USING (
     bucket_id = 'post-images' AND 
-    auth.uid()::text = owner
+    auth.uid() = owner
   );
 
 -- =====================================================
