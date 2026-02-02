@@ -211,5 +211,9 @@ END $$;
 -- LEFT JOIN profiles p ON pc.user_id = p.id
 -- LIMIT 10;
 
-RAISE NOTICE '✅ Feed page error fixes applied successfully!';
-RAISE NOTICE 'Test the app now: Feed → Post Details → Comments → Repost';
+-- Final success message
+DO $$
+BEGIN
+  RAISE NOTICE '✅ Feed page error fixes applied successfully!';
+  RAISE NOTICE 'Test the app now: Feed → Post Details → Comments → Repost';
+END $$;
