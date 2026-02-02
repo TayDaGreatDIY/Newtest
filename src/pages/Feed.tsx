@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GlassCard, SectionHeader, GradientButton, EmptyState, Modal, ImageUpload, useToast } from '../components';
 import { getFeedPosts, likePost, unlikePost, createPost, uploadPostImage, subscribeToPostChanges, subscribeToPostLikeChanges, repostPost, unrepostPost, getPostReposts, deletePost } from '../lib/posts';
@@ -22,8 +22,8 @@ export const Feed: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
-  const [touchStartTime, setTouchStartTime] = useState<number>(0);
-  const [touchTimer, setTouchTimer] = useState<NodeJS.Timeout | null>(null);
+  const touchTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const touchStartTimeRef = useRef<number>(0);
   const { showToast } = useToast();
 
   const loadPosts = useCallback(async () => {
@@ -58,11 +58,11 @@ export const Feed: React.FC = () => {
       unsubscribePosts();
       unsubscribeLikes();
       // Clean up touch timer on unmount
-      if (touchTimer) {
-        clearTimeout(touchTimer);
+      if (touchTimerRef.current) {
+        clearTimeout(touchTimerRef.current);
       }
     };
-  }, [loadPosts, touchTimer]);
+  }, [loadPosts]);
 
   const handleLike = async (postId: string, isLiked: boolean) => {
     const { error } = isLiked ? await unlikePost(postId) : await likePost(postId);
@@ -202,39 +202,32 @@ export const Feed: React.FC = () => {
 
   // Touch event handlers for long-press to view reposts (mobile alternative to right-click)
   const handleTouchStart = (postId: string, e: React.TouchEvent) => {
-    const startTime = Date.now();
-    setTouchStartTime(startTime);
+    // Persist the event to use it after the timeout
+    e.persist();
+    touchStartTimeRef.current = Date.now();
     
     // Set a timer for long press (500ms)
     const timer = setTimeout(() => {
       // Long press detected
       handleShowReposts(postId);
-      // Prevent default to avoid triggering click
-      e.preventDefault();
     }, 500);
     
-    setTouchTimer(timer);
+    touchTimerRef.current = timer;
   };
 
   const handleTouchEnd = () => {
     // Clear the timer if touch ends before long press duration
-    if (touchTimer) {
-      clearTimeout(touchTimer);
-      setTouchTimer(null);
-    }
-    
-    // If it was a quick touch (less than 500ms), it's a regular tap
-    const touchDuration = Date.now() - touchStartTime;
-    if (touchDuration < 500) {
-      // Allow normal click behavior
+    if (touchTimerRef.current) {
+      clearTimeout(touchTimerRef.current);
+      touchTimerRef.current = null;
     }
   };
 
   const handleTouchMove = () => {
     // Cancel long press if user moves finger
-    if (touchTimer) {
-      clearTimeout(touchTimer);
-      setTouchTimer(null);
+    if (touchTimerRef.current) {
+      clearTimeout(touchTimerRef.current);
+      touchTimerRef.current = null;
     }
   };
 
@@ -421,14 +414,8 @@ export const Feed: React.FC = () => {
                       e.stopPropagation();
                       handleTouchStart(post.id, e);
                     }}
-                    onTouchEnd={(e) => {
-                      e.stopPropagation();
-                      handleTouchEnd();
-                    }}
-                    onTouchMove={(e) => {
-                      e.stopPropagation();
-                      handleTouchMove();
-                    }}
+                    onTouchEnd={handleTouchEnd}
+                    onTouchMove={handleTouchMove}
                     className={`flex items-center gap-2 transition-colors ${
                       post.is_reposted_by_me ? 'text-green-500' : 'text-gray-400 hover:text-white'
                     }`}
