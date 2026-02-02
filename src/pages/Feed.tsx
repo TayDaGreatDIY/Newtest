@@ -298,21 +298,27 @@ export const Feed: React.FC = () => {
         ) : (
           <div className="space-y-4">
             {posts.map(post => (
-              <GlassCard key={post.id} className="space-y-4">
+              <GlassCard 
+                key={post.id} 
+                className="space-y-4 cursor-pointer hover:bg-white/5 transition-all"
+                onClick={() => navigate(`/app/posts/${post.id}`)}
+              >
                 {/* Author */}
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full gradient-accent flex items-center justify-center text-2xl">
                     🏀
                   </div>
-                  <div 
-                    className="flex-1 cursor-pointer hover:opacity-80 transition-opacity" 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/app/profile/${post.user_id}`);
-                    }}
-                    title="View profile"
-                  >
-                    <h3 className="font-bold">{post.user_display_name || 'Anonymous'}</h3>
+                  <div className="flex-1">
+                    <h3 
+                      className="font-bold cursor-pointer hover:text-purple-400 transition-colors w-fit"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/app/profile/${post.user_id}`);
+                      }}
+                      title="View profile"
+                    >
+                      {post.user_display_name || 'Anonymous'}
+                    </h3>
                     <p className="text-sm text-gray-400">{formatTimestamp(post.created_at)}</p>
                   </div>
                   {/* Menu button (delete for owner, report for others) */}
@@ -335,12 +341,8 @@ export const Feed: React.FC = () => {
                   </GradientButton>
                 </div>
 
-                {/* Content - Click to view post detail */}
-                <div 
-                  className="cursor-pointer hover:opacity-90 transition-opacity"
-                  onClick={() => navigate(`/app/posts/${post.id}`)}
-                  title="View post details"
-                >
+                {/* Content */}
+                <div>
                   <p className="text-base">{post.content}</p>
 
                   {/* Image */}
@@ -366,7 +368,10 @@ export const Feed: React.FC = () => {
                       <GradientButton 
                         size="sm" 
                         variant="accent"
-                        onClick={() => navigate(`/app/challenges/${post.challenge_id}`)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/app/challenges/${post.challenge_id}`);
+                        }}
                       >
                         View
                       </GradientButton>
