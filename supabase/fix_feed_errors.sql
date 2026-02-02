@@ -11,9 +11,25 @@
 
 -- 1. Verify and fix profiles RLS policy
 -- This is the most common cause of join failures
-DROP POLICY IF EXISTS "Users can view own profile" ON public.profiles;
+-- Drop any existing SELECT policies and create a new permissive one
+DO $$
+DECLARE
+  policy_record RECORD;
+BEGIN
+  -- Drop all existing SELECT policies on profiles table
+  FOR policy_record IN 
+    SELECT policyname 
+    FROM pg_policies 
+    WHERE tablename = 'profiles' 
+    AND cmd = 'SELECT'
+  LOOP
+    EXECUTE format('DROP POLICY IF EXISTS %I ON public.profiles', policy_record.policyname);
+    RAISE NOTICE 'Dropped policy: %', policy_record.policyname;
+  END LOOP;
+END $$;
 
-CREATE POLICY IF NOT EXISTS "Authenticated users can view all profiles"
+-- Create the correct policy
+CREATE POLICY "Authenticated users can view all profiles"
   ON public.profiles
   FOR SELECT
   USING (auth.uid() IS NOT NULL);
@@ -132,27 +148,69 @@ GRANT EXECUTE ON FUNCTION public.get_single_post(UUID) TO authenticated;
 
 -- 4. Verify post_comments RLS policies allow reading with joins
 -- Ensure authenticated users can read all comments
-DROP POLICY IF EXISTS "Users can view comments" ON public.post_comments;
+DO $$
+DECLARE
+  policy_record RECORD;
+BEGIN
+  -- Drop all existing SELECT policies on post_comments table
+  FOR policy_record IN 
+    SELECT policyname 
+    FROM pg_policies 
+    WHERE tablename = 'post_comments' 
+    AND cmd = 'SELECT'
+  LOOP
+    EXECUTE format('DROP POLICY IF EXISTS %I ON public.post_comments', policy_record.policyname);
+    RAISE NOTICE 'Dropped policy: %', policy_record.policyname;
+  END LOOP;
+END $$;
 
-CREATE POLICY IF NOT EXISTS "Authenticated users can view all comments"
+CREATE POLICY "Authenticated users can view all comments"
   ON public.post_comments
   FOR SELECT
   USING (auth.uid() IS NOT NULL);
 
 -- 5. Verify post_reposts RLS policies
 -- Ensure authenticated users can view all reposts
-DROP POLICY IF EXISTS "Users can view reposts" ON public.post_reposts;
+DO $$
+DECLARE
+  policy_record RECORD;
+BEGIN
+  -- Drop all existing SELECT policies on post_reposts table
+  FOR policy_record IN 
+    SELECT policyname 
+    FROM pg_policies 
+    WHERE tablename = 'post_reposts' 
+    AND cmd = 'SELECT'
+  LOOP
+    EXECUTE format('DROP POLICY IF EXISTS %I ON public.post_reposts', policy_record.policyname);
+    RAISE NOTICE 'Dropped policy: %', policy_record.policyname;
+  END LOOP;
+END $$;
 
-CREATE POLICY IF NOT EXISTS "Authenticated users can view all reposts"
+CREATE POLICY "Authenticated users can view all reposts"
   ON public.post_reposts
   FOR SELECT
   USING (auth.uid() IS NOT NULL);
 
 -- 6. Verify posts RLS policies allow reading
 -- This is needed for the repost function's post existence check
-DROP POLICY IF EXISTS "Users can view posts" ON public.posts;
+DO $$
+DECLARE
+  policy_record RECORD;
+BEGIN
+  -- Drop all existing SELECT policies on posts table
+  FOR policy_record IN 
+    SELECT policyname 
+    FROM pg_policies 
+    WHERE tablename = 'posts' 
+    AND cmd = 'SELECT'
+  LOOP
+    EXECUTE format('DROP POLICY IF EXISTS %I ON public.posts', policy_record.policyname);
+    RAISE NOTICE 'Dropped policy: %', policy_record.policyname;
+  END LOOP;
+END $$;
 
-CREATE POLICY IF NOT EXISTS "Authenticated users can view all posts"
+CREATE POLICY "Authenticated users can view all posts"
   ON public.posts
   FOR SELECT
   USING (auth.uid() IS NOT NULL);
