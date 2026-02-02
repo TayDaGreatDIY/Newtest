@@ -132,6 +132,11 @@ VITE_SUPABASE_URL=your-project-url
 VITE_SUPABASE_ANON_KEY=your-anon-key
 ```
 
+**How to find these values:**
+1. Go to Supabase Dashboard → Settings → API
+2. Copy "Project URL" for `VITE_SUPABASE_URL`
+3. Copy "anon public" key for `VITE_SUPABASE_ANON_KEY`
+
 ### 4. Clear Cache and Rebuild
 ```bash
 # Clear node modules and rebuild
