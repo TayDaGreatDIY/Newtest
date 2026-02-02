@@ -9,7 +9,7 @@ User reported SQL syntax errors when running `supabase/fix_feed_errors.sql`:
 2. **Error**: `cannot change return type of existing function` 
    - `CREATE OR REPLACE FUNCTION` fails when return type differs from existing function
 
-## Solution (Commit d517a2e)
+## Solution
 
 ### Fix 1: CREATE POLICY Syntax
 **Problem**: Standalone `CREATE POLICY IF NOT EXISTS` statements after DO blocks
