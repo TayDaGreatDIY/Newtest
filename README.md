@@ -121,7 +121,9 @@ VITE_OPENAI_API_KEY=your-openai-api-key  # Optional, for AI Coach feature
    - Paste into the SQL Editor and click "Run"
    - This will create all necessary tables, policies, and functions
 
-   > ⚠️ **IMPORTANT:** If you previously ran older migration files and are experiencing errors like "Could not find a relationship" or "failed to load comments", you need to apply a critical RLS policy fix. See [DATABASE_FIXES.md](DATABASE_FIXES.md) for instructions.
+   > ⚠️ **COMMON ISSUES:**  
+   > - **"relation 'public.post_reposts' does not exist"** error? See [FIX_POST_REPOSTS_ERROR.md](FIX_POST_REPOSTS_ERROR.md)  
+   > - **"Could not find a relationship" or "failed to load comments"** errors? See [DATABASE_FIXES.md](DATABASE_FIXES.md)
    
 6. Set up Storage:
    - Go to Storage section in Supabase Dashboard
