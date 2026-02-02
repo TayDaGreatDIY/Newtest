@@ -329,20 +329,58 @@ export const ThinkingCorner: React.FC = () => {
         </div>
       )}
 
-      {/* Quick Prompts */}
+      {/* Custom Message Input Section */}
       <div className="px-4 mb-4">
-        <p className="text-sm text-gray-400 mb-3">Quick prompts:</p>
-        <div className="grid grid-cols-2 gap-3">
-          {quickPrompts.map((prompt, idx) => (
-            <GlassCard 
-              key={idx}
-              className="text-center cursor-pointer hover:bg-white/10 transition-colors"
-              onClick={() => !loading && handleQuickPrompt(prompt.prompt)}
+        <div className="mb-4">
+          <label htmlFor="ai-coach-input" className="block text-sm font-semibold mb-2 gradient-text">
+            💬 Write Your Message
+          </label>
+          <p className="text-xs text-gray-400 mb-3">
+            Ask me anything about training, nutrition, motivation, or basketball!
+          </p>
+          <textarea
+            id="ai-coach-input"
+            placeholder="Type your question or message here... (e.g., 'Help me create a workout plan to improve my vertical jump')"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey && !loading) {
+                e.preventDefault();
+                handleSendMessage();
+              }
+            }}
+            disabled={loading}
+            className="w-full px-4 py-3 rounded-2xl glass focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all min-h-[100px] resize-y"
+          />
+          <div className="flex items-center justify-between mt-2">
+            <p className="text-xs text-gray-500">
+              Press Enter to send, Shift+Enter for new line
+            </p>
+            <GradientButton 
+              variant="primary" 
+              onClick={() => handleSendMessage()}
+              disabled={!input.trim() || loading}
+              className="rounded-2xl"
             >
-              <div className="text-3xl mb-2">{prompt.emoji}</div>
-              <p className="text-xs font-semibold">{prompt.label}</p>
-            </GlassCard>
-          ))}
+              {loading ? 'Sending...' : 'Send Message'}
+            </GradientButton>
+          </div>
+        </div>
+
+        <div className="border-t border-white/10 pt-4">
+          <p className="text-sm text-gray-400 mb-3">Or try a quick prompt:</p>
+          <div className="grid grid-cols-2 gap-3">
+            {quickPrompts.map((prompt, idx) => (
+              <GlassCard 
+                key={idx}
+                className="text-center cursor-pointer hover:bg-white/10 transition-colors"
+                onClick={() => !loading && handleQuickPrompt(prompt.prompt)}
+              >
+                <div className="text-3xl mb-2">{prompt.emoji}</div>
+                <p className="text-xs font-semibold">{prompt.label}</p>
+              </GlassCard>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -388,28 +426,7 @@ export const ThinkingCorner: React.FC = () => {
         )}
       </div>
 
-      {/* Input */}
-      <div className="glass-dark border-t border-white/10 px-4 py-4 sticky bottom-0">
-        <div className="flex gap-2 items-end">
-          <input
-            type="text"
-            placeholder="Ask your AI coach anything..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && !loading && handleSendMessage()}
-            disabled={loading}
-            className="flex-1 px-4 py-3 rounded-2xl glass focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all"
-          />
-          <GradientButton 
-            variant="primary" 
-            onClick={() => handleSendMessage()}
-            disabled={!input.trim() || loading}
-            className="rounded-2xl"
-          >
-            {loading ? 'Sending...' : 'Send'}
-          </GradientButton>
-        </div>
-      </div>
+
     </div>
   );
 };
