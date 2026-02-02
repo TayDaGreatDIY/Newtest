@@ -243,6 +243,17 @@ Try these features to ensure everything works:
 
 ## Troubleshooting
 
+### "relation 'public.post_reposts' does not exist" error
+
+**Problem:** You see this error when opening the feed page.
+
+**Solution:** The `post_reposts` table is missing from your database. Follow the detailed guide in [`FIX_POST_REPOSTS_ERROR.md`](FIX_POST_REPOSTS_ERROR.md).
+
+**Quick Fix:**
+1. Go to Supabase SQL Editor
+2. Run the SQL from `supabase/create_post_reposts_table.sql`
+3. Refresh your app
+
 ### "permission denied" or RLS errors
 
 **Solution:** Make sure you're logged in to the app. All tables have Row Level Security enabled, which requires authentication.

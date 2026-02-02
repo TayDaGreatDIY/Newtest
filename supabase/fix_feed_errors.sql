@@ -5,8 +5,14 @@
 -- - "Failed to load post. Please try again"
 -- - "Failed to load comments"
 -- - "Failed to repost"
+-- - "relation 'public.post_reposts' does not exist"
 --
 -- Run this in your Supabase SQL Editor
+--
+-- NOTE: The functions include table existence checks to handle cases
+-- where post_reposts table hasn't been created yet. While this adds
+-- a small performance overhead, it provides resilience. For production,
+-- ensure all tables are created via mvp_migrations.sql.
 -- =====================================================
 
 -- 1. Verify and fix profiles RLS policy
@@ -63,33 +69,70 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
 AS $$
+DECLARE
+  post_reposts_exists BOOLEAN;
 BEGIN
-  RETURN QUERY
-  SELECT 
-    p.id AS post_id,
-    p.type AS post_type,
-    p.content AS post_content,
-    p.image_url AS post_image_url,
-    p.challenge_id AS post_challenge_id,
-    p.likes_count,
-    p.comments_count,
-    p.shares_count,
-    p.created_at,
-    p.user_id,
-    prof.display_name AS user_display_name,
-    EXISTS(
-      SELECT 1 FROM public.post_likes pl
-      WHERE pl.post_id = p.id AND pl.user_id = auth.uid()
-    ) AS is_liked_by_me,
-    EXISTS(
-      SELECT 1 FROM public.post_reposts pr
-      WHERE pr.post_id = p.id AND pr.user_id = auth.uid()
-    ) AS is_reposted_by_me
-  FROM public.posts p
-  LEFT JOIN public.profiles prof ON p.user_id = prof.id
-  ORDER BY p.created_at DESC
-  LIMIT limit_count
-  OFFSET offset_count;
+  -- Check if post_reposts table exists
+  SELECT EXISTS (
+    SELECT FROM pg_tables 
+    WHERE schemaname = 'public' 
+    AND tablename = 'post_reposts'
+  ) INTO post_reposts_exists;
+
+  -- If post_reposts table exists, include repost check
+  IF post_reposts_exists THEN
+    RETURN QUERY
+    SELECT 
+      p.id AS post_id,
+      p.type AS post_type,
+      p.content AS post_content,
+      p.image_url AS post_image_url,
+      p.challenge_id AS post_challenge_id,
+      p.likes_count,
+      p.comments_count,
+      p.shares_count,
+      p.created_at,
+      p.user_id,
+      prof.display_name AS user_display_name,
+      EXISTS(
+        SELECT 1 FROM public.post_likes pl
+        WHERE pl.post_id = p.id AND pl.user_id = auth.uid()
+      ) AS is_liked_by_me,
+      EXISTS(
+        SELECT 1 FROM public.post_reposts pr
+        WHERE pr.post_id = p.id AND pr.user_id = auth.uid()
+      ) AS is_reposted_by_me
+    FROM public.posts p
+    LEFT JOIN public.profiles prof ON p.user_id = prof.id
+    ORDER BY p.created_at DESC
+    LIMIT limit_count
+    OFFSET offset_count;
+  ELSE
+    -- If post_reposts doesn't exist, return false for is_reposted_by_me
+    RETURN QUERY
+    SELECT 
+      p.id AS post_id,
+      p.type AS post_type,
+      p.content AS post_content,
+      p.image_url AS post_image_url,
+      p.challenge_id AS post_challenge_id,
+      p.likes_count,
+      p.comments_count,
+      p.shares_count,
+      p.created_at,
+      p.user_id,
+      prof.display_name AS user_display_name,
+      EXISTS(
+        SELECT 1 FROM public.post_likes pl
+        WHERE pl.post_id = p.id AND pl.user_id = auth.uid()
+      ) AS is_liked_by_me,
+      FALSE AS is_reposted_by_me
+    FROM public.posts p
+    LEFT JOIN public.profiles prof ON p.user_id = prof.id
+    ORDER BY p.created_at DESC
+    LIMIT limit_count
+    OFFSET offset_count;
+  END IF;
 END;
 $$;
 
@@ -122,33 +165,70 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = ''
 AS $$
+DECLARE
+  post_reposts_exists BOOLEAN;
 BEGIN
-  RETURN QUERY
-  SELECT 
-    p.id AS post_id,
-    p.type AS post_type,
-    p.content AS post_content,
-    p.image_url AS post_image_url,
-    p.challenge_id AS post_challenge_id,
-    p.likes_count,
-    p.comments_count,
-    p.shares_count,
-    p.created_at,
-    p.updated_at,
-    p.user_id,
-    prof.display_name AS user_display_name,
-    EXISTS(
-      SELECT 1 FROM public.post_likes pl
-      WHERE pl.post_id = p.id AND pl.user_id = auth.uid()
-    ) AS is_liked_by_me,
-    EXISTS(
-      SELECT 1 FROM public.post_reposts pr
-      WHERE pr.post_id = p.id AND pr.user_id = auth.uid()
-    ) AS is_reposted_by_me
-  FROM public.posts p
-  LEFT JOIN public.profiles prof ON p.user_id = prof.id
-  WHERE p.id = post_uuid
-  LIMIT 1;
+  -- Check if post_reposts table exists
+  SELECT EXISTS (
+    SELECT FROM pg_tables 
+    WHERE schemaname = 'public' 
+    AND tablename = 'post_reposts'
+  ) INTO post_reposts_exists;
+
+  -- If post_reposts table exists, include repost check
+  IF post_reposts_exists THEN
+    RETURN QUERY
+    SELECT 
+      p.id AS post_id,
+      p.type AS post_type,
+      p.content AS post_content,
+      p.image_url AS post_image_url,
+      p.challenge_id AS post_challenge_id,
+      p.likes_count,
+      p.comments_count,
+      p.shares_count,
+      p.created_at,
+      p.updated_at,
+      p.user_id,
+      prof.display_name AS user_display_name,
+      EXISTS(
+        SELECT 1 FROM public.post_likes pl
+        WHERE pl.post_id = p.id AND pl.user_id = auth.uid()
+      ) AS is_liked_by_me,
+      EXISTS(
+        SELECT 1 FROM public.post_reposts pr
+        WHERE pr.post_id = p.id AND pr.user_id = auth.uid()
+      ) AS is_reposted_by_me
+    FROM public.posts p
+    LEFT JOIN public.profiles prof ON p.user_id = prof.id
+    WHERE p.id = post_uuid
+    LIMIT 1;
+  ELSE
+    -- If post_reposts doesn't exist, return false for is_reposted_by_me
+    RETURN QUERY
+    SELECT 
+      p.id AS post_id,
+      p.type AS post_type,
+      p.content AS post_content,
+      p.image_url AS post_image_url,
+      p.challenge_id AS post_challenge_id,
+      p.likes_count,
+      p.comments_count,
+      p.shares_count,
+      p.created_at,
+      p.updated_at,
+      p.user_id,
+      prof.display_name AS user_display_name,
+      EXISTS(
+        SELECT 1 FROM public.post_likes pl
+        WHERE pl.post_id = p.id AND pl.user_id = auth.uid()
+      ) AS is_liked_by_me,
+      FALSE AS is_reposted_by_me
+    FROM public.posts p
+    LEFT JOIN public.profiles prof ON p.user_id = prof.id
+    WHERE p.id = post_uuid
+    LIMIT 1;
+  END IF;
 END;
 $$;
 
