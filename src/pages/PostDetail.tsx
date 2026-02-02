@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { GlassCard, SectionHeader, GradientButton, useToast, Modal } from '../components';
-import { getPost, getPostComments, addPostComment, likePost, unlikePost, repostPost, unrepostPost, deletePost } from '../lib/posts';
+import { getPost, getPostComments, addPostComment, likePost, unlikePost, repostPost, unrepostPost, deletePost, updatePost } from '../lib/posts';
 import type { PostWithUser, PostCommentWithUser } from '../types/db';
 import { useAuth } from '../lib/AuthContext';
 
@@ -17,6 +17,8 @@ export const PostDetail: React.FC = () => {
   const [newComment, setNewComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [showPostMenuModal, setShowPostMenuModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editContent, setEditContent] = useState('');
 
   useEffect(() => {
     if (!id) {
@@ -114,6 +116,24 @@ export const PostDetail: React.FC = () => {
       setShowPostMenuModal(false);
       // Navigate back to feed after deleting
       navigate('/app/feed');
+    }
+  };
+
+  const handleEditPost = async () => {
+    if (!post || !editContent.trim()) return;
+
+    setSubmitting(true);
+    const { data, error } = await updatePost(post.id, editContent.trim());
+    setSubmitting(false);
+
+    if (error) {
+      showToast(`Failed to update post: ${error}`, 'error');
+    } else if (data) {
+      showToast('Post updated successfully!', 'success');
+      setShowEditModal(false);
+      setShowPostMenuModal(false);
+      // Update the local post state
+      setPost({ ...post, content: editContent.trim() });
     }
   };
 
@@ -322,7 +342,8 @@ export const PostDetail: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  showToast('Edit feature coming soon!', 'info');
+                  setEditContent(post?.content || '');
+                  setShowEditModal(true);
                   setShowPostMenuModal(false);
                 }}
                 className="w-full px-4 py-3 rounded-xl glass hover:bg-white/10 transition-colors text-left"
@@ -359,6 +380,40 @@ export const PostDetail: React.FC = () => {
               </button>
             </>
           )}
+        </div>
+      </Modal>
+
+      {/* Edit Post Modal */}
+      <Modal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        title="Edit Post"
+      >
+        <div className="space-y-4">
+          <textarea
+            value={editContent}
+            onChange={(e) => setEditContent(e.target.value)}
+            placeholder="What's on your mind?"
+            disabled={submitting}
+            className="w-full px-4 py-3 rounded-xl glass focus:bg-white/10 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition-all resize-none"
+            rows={5}
+          />
+          <div className="flex gap-3 justify-end">
+            <GradientButton
+              variant="secondary"
+              onClick={() => setShowEditModal(false)}
+              disabled={submitting}
+            >
+              Cancel
+            </GradientButton>
+            <GradientButton
+              variant="primary"
+              onClick={handleEditPost}
+              disabled={submitting || !editContent.trim()}
+            >
+              {submitting ? 'Updating...' : 'Update Post'}
+            </GradientButton>
+          </div>
         </div>
       </Modal>
     </div>

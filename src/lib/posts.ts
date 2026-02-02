@@ -90,6 +90,34 @@ export async function createPost(input: CreatePostInput) {
 }
 
 /**
+ * Update a post
+ */
+export async function updatePost(postId: string, content: string) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    const { data, error } = await supabase
+      .from('posts')
+      .update({
+        content,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', postId)
+      .eq('user_id', user.id) // Ensure user owns the post
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { data: data as Post, error: null };
+  } catch (error) {
+    console.error('Error updating post:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to update post. Please try again.';
+    return { data: null, error: errorMessage };
+  }
+}
+
+/**
  * Delete a post
  */
 export async function deletePost(postId: string) {
@@ -163,8 +191,13 @@ export async function getPostComments(postId: string, limit = 50, offset = 0) {
     const { data, error } = await supabase
       .from('post_comments')
       .select(`
-        *,
-        profiles:user_id (display_name)
+        id,
+        post_id,
+        user_id,
+        content,
+        created_at,
+        updated_at,
+        profiles!post_comments_user_id_fkey (display_name)
       `)
       .eq('post_id', postId)
       .order('created_at', { ascending: true })
