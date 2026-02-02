@@ -15,7 +15,10 @@ export async function getFeedPosts(limit = 50, offset = 0) {
       offset_count: offset,
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('RPC get_feed_posts error:', error);
+      throw new Error(`Database error: ${error.message || 'Unknown error'}`);
+    }
 
     // Transform the data to match PostWithUser interface
     const posts: PostWithUser[] = (data || []).map((row: {
@@ -167,7 +170,10 @@ export async function getPostComments(postId: string, limit = 50, offset = 0) {
       .order('created_at', { ascending: true })
       .range(offset, offset + limit - 1);
 
-    if (error) throw error;
+    if (error) {
+      console.error('Database error fetching comments:', error);
+      throw new Error(`Database error: ${error.message || 'Unknown error'}`);
+    }
 
     const comments: PostCommentWithUser[] = (data || []).map((comment: {
       id: string;
@@ -338,7 +344,7 @@ export async function repostPost(postId: string) {
 
     if (checkError) {
       console.error('Error checking post existence:', checkError);
-      throw new Error('Failed to verify post');
+      throw new Error(`Database error: ${checkError.message || 'Failed to verify post'}`);
     }
 
     if (!postExists) {
@@ -357,7 +363,8 @@ export async function repostPost(postId: string) {
       if (error.code === '23505') {
         throw new Error('You have already reposted this post');
       }
-      throw error;
+      console.error('Error inserting repost:', error);
+      throw new Error(`Database error: ${error.message || 'Unknown error'}`);
     }
     return { error: null };
   } catch (error) {
@@ -439,7 +446,10 @@ export async function getPost(postId: string) {
       post_uuid: postId,
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('RPC get_single_post error:', error);
+      throw new Error(`Database error: ${error.message || 'Unknown error'}`);
+    }
     
     // RPC returns an array, get the first item
     const postData = data && data.length > 0 ? data[0] : null;
