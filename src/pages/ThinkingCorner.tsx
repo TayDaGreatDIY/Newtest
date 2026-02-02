@@ -332,17 +332,18 @@ export const ThinkingCorner: React.FC = () => {
       {/* Custom Message Input Section */}
       <div className="px-4 mb-4">
         <div className="mb-4">
-          <label className="block text-sm font-semibold mb-2 gradient-text">
+          <label htmlFor="ai-coach-input" className="block text-sm font-semibold mb-2 gradient-text">
             💬 Write Your Message
           </label>
           <p className="text-xs text-gray-400 mb-3">
             Ask me anything about training, nutrition, motivation, or basketball!
           </p>
           <textarea
+            id="ai-coach-input"
             placeholder="Type your question or message here... (e.g., 'Help me create a workout plan to improve my vertical jump')"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => {
+            onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey && !loading) {
                 e.preventDefault();
                 handleSendMessage();

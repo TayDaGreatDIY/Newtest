@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thinking Corner - Before & After Comparison</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px;
+            margin: 0;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+        }
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .panel h2 {
+            color: #ff6b6b;
+            margin-top: 0;
+            font-size: 1.8em;
+            text-align: center;
+        }
+        .panel.new h2 {
+            color: #51cf66;
+        }
+        .mockup {
+            background: #1a1a2e;
+            border-radius: 15px;
+            padding: 20px;
+            min-height: 500px;
+            color: white;
+        }
+        .header {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .header h3 {
+            margin: 0;
+            color: #a78bfa;
+        }
+        .badge {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            margin-top: 10px;
+            display: inline-block;
+        }
+        .quick-prompts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .quick-prompt {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .quick-prompt .emoji {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+        .input-section {
+            margin-top: 20px;
+        }
+        .input-section.old {
+            position: fixed;
+            bottom: 20px;
+            left: 0;
+            right: 50%;
+            margin-right: 45px;
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 15px 50px;
+        }
+        .input-section input,
+        .input-section textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 0.95em;
+            font-family: inherit;
+            resize: vertical;
+        }
+        .input-section textarea {
+            min-height: 100px;
+        }
+        .input-section input::placeholder,
+        .input-section textarea::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        .input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .send-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .description {
+            font-size: 0.85em;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 12px;
+        }
+        .hint {
+            font-size: 0.75em;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .separator {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin: 20px 0;
+            padding-top: 20px;
+        }
+        .features {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 40px;
+        }
+        .features h2 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .feature {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .feature h3 {
+            color: #51cf66;
+            margin-top: 0;
+            font-size: 1.2em;
+        }
+        .feature p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+        @media (max-width: 1024px) {
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+            .input-section.old {
+                position: relative;
+                right: auto;
+                margin-right: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏀 Thinking Corner Improvements</h1>
+        
+        <div class="comparison">
+            <!-- BEFORE -->
+            <div class="panel old">
+                <h2>❌ BEFORE (Old Design)</h2>
+                <div class="mockup">
+                    <div class="header">
+                        <h3>Thinking Corner</h3>
+                        <div class="badge">ℹ️ Basic Coach Mode</div>
+                    </div>
+                    
+                    <p style="font-size: 0.9em; color: rgba(255, 255, 255, 0.6); margin-bottom: 15px;">Quick prompts:</p>
+                    <div class="quick-prompts">
+                        <div class="quick-prompt">
+                            <div class="emoji">💪</div>
+                            <div style="font-size: 0.85em;">Motivation</div>
+                        </div>
+                        <div class="quick-prompt">
+                            <div class="emoji">🏋️</div>
+                            <div style="font-size: 0.85em;">Workout Plan</div>
+                        </div>
+                        <div class="quick-prompt">
+                            <div class="emoji">🥗</div>
+                            <div style="font-size: 0.85em;">Nutrition</div>
+                        </div>
+                        <div class="quick-prompt">
+                            <div class="emoji">🧠</div>
+                            <div style="font-size: 0.85em;">Mental Reset</div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 12px; margin-bottom: 100px;">
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); display: flex; align-items: center; justify-content: center;">🤖</div>
+                            <div style="flex: 1;">
+                                <p style="margin: 0; font-size: 0.9em;">Hey there! 👋 I'm your AI Basketball Coach...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Fixed input at bottom -->
+                <div class="input-section old">
+                    <div class="input-wrapper">
+                        <input type="text" placeholder="Ask your AI coach anything..." />
+                        <button class="send-btn">Send</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- AFTER -->
+            <div class="panel new">
+                <h2>✅ AFTER (New Design)</h2>
+                <div class="mockup">
+                    <div class="header">
+                        <h3>Thinking Corner</h3>
+                        <div class="badge">ℹ️ Basic Coach Mode</div>
+                    </div>
+                    
+                    <div class="input-section">
+                        <div class="label">💬 Write Your Message</div>
+                        <div class="description">
+                            Ask me anything about training, nutrition, motivation, or basketball!
+                        </div>
+                        <textarea placeholder="Type your question or message here... (e.g., 'Help me create a workout plan to improve my vertical jump')"></textarea>
+                        <div class="hint">
+                            <span>Press Enter to send, Shift+Enter for new line</span>
+                            <button class="send-btn">Send Message</button>
+                        </div>
+                    </div>
+                    
+                    <div class="separator">
+                        <p style="font-size: 0.9em; color: rgba(255, 255, 255, 0.6); margin: 0 0 15px 0;">Or try a quick prompt:</p>
+                        <div class="quick-prompts">
+                            <div class="quick-prompt">
+                                <div class="emoji">💪</div>
+                                <div style="font-size: 0.85em;">Motivation</div>
+                            </div>
+                            <div class="quick-prompt">
+                                <div class="emoji">🏋️</div>
+                                <div style="font-size: 0.85em;">Workout Plan</div>
+                            </div>
+                            <div class="quick-prompt">
+                                <div class="emoji">🥗</div>
+                                <div style="font-size: 0.85em;">Nutrition</div>
+                            </div>
+                            <div class="quick-prompt">
+                                <div class="emoji">🧠</div>
+                                <div style="font-size: 0.85em;">Mental Reset</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="features">
+            <h2>Key Improvements</h2>
+            <div class="feature-grid">
+                <div class="feature">
+                    <h3>📝 Multi-Line Textarea</h3>
+                    <p>Users can now write longer, more detailed questions and prompts. The textarea is resizable and starts at 100px height.</p>
+                </div>
+                <div class="feature">
+                    <h3>👁️ Better Visibility</h3>
+                    <p>Prominent label and description make it clear where users should type their custom messages, not just use quick prompts.</p>
+                </div>
+                <div class="feature">
+                    <h3>⌨️ Smart Keyboard Controls</h3>
+                    <p>Press Enter to send, Shift+Enter for new lines. Clear instructions help users understand the controls.</p>
+                </div>
+                <div class="feature">
+                    <h3>🎯 Clear Hierarchy</h3>
+                    <p>Custom input is now the primary action, with quick prompts as a secondary option below with visual separation.</p>
+                </div>
+                <div class="feature">
+                    <h3>💡 Helpful Placeholder</h3>
+                    <p>Example text shows users exactly what kind of questions they can ask, making the feature more discoverable.</p>
+                </div>
+                <div class="feature">
+                    <h3>🔑 OpenAI Key Working</h3>
+                    <p>Your OpenAI key configuration is already correct! The key being hidden in GitHub is normal security behavior.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
