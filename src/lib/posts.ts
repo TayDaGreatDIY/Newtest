@@ -188,46 +188,51 @@ export async function unlikePost(postId: string) {
  */
 export async function getPostComments(postId: string, limit = 50, offset = 0) {
   try {
-    const { data, error } = await supabase
+    // Get comments first
+    const { data: commentsData, error: commentsError } = await supabase
       .from('post_comments')
-      .select(`
-        id,
-        post_id,
-        user_id,
-        content,
-        created_at,
-        updated_at,
-        profiles!inner (
-          display_name
-        )
-      `)
+      .select('*')
       .eq('post_id', postId)
       .order('created_at', { ascending: true })
       .range(offset, offset + limit - 1);
 
-    if (error) {
-      console.error('Database error fetching comments:', error);
-      throw new Error(`Database error: ${error.message || 'Unknown error'}`);
+    if (commentsError) {
+      console.error('Database error fetching comments:', commentsError);
+      throw new Error(`Database error: ${commentsError.message || 'Unknown error'}`);
     }
 
-    interface CommentWithProfile {
-      id: string;
-      post_id: string;
-      user_id: string;
-      content: string;
-      created_at: string;
-      updated_at: string;
-      profiles: { display_name: string | null };
+    if (!commentsData || commentsData.length === 0) {
+      return { data: [], error: null };
     }
 
-    const comments: PostCommentWithUser[] = (data || []).map((comment: CommentWithProfile) => ({
+    // Get unique user IDs
+    const userIds = [...new Set(commentsData.map(c => c.user_id))];
+
+    // Fetch profiles for these users
+    const { data: profilesData, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, display_name')
+      .in('id', userIds);
+
+    if (profilesError) {
+      console.error('Error fetching profiles:', profilesError);
+      // Continue without profiles rather than failing
+    }
+
+    // Create a map of user_id to display_name
+    const profilesMap = new Map(
+      (profilesData || []).map(p => [p.id, p.display_name])
+    );
+
+    // Combine comments with user display names
+    const comments: PostCommentWithUser[] = commentsData.map((comment) => ({
       id: comment.id,
       post_id: comment.post_id,
       user_id: comment.user_id,
       content: comment.content,
       created_at: comment.created_at,
       updated_at: comment.updated_at,
-      user_display_name: comment.profiles?.display_name || null,
+      user_display_name: profilesMap.get(comment.user_id) || null,
     }));
 
     return { data: comments, error: null };
