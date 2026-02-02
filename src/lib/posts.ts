@@ -90,6 +90,33 @@ export async function createPost(input: CreatePostInput) {
 }
 
 /**
+ * Update a post
+ */
+export async function updatePost(postId: string, content: string) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
+    const { data, error } = await supabase
+      .from('posts')
+      .update({
+        content,
+      })
+      .eq('id', postId)
+      .eq('user_id', user.id) // Ensure user owns the post
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { data: data as Post, error: null };
+  } catch (error) {
+    console.error('Error updating post:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to update post. Please try again.';
+    return { data: null, error: errorMessage };
+  }
+}
+
+/**
  * Delete a post
  */
 export async function deletePost(postId: string) {
@@ -160,37 +187,51 @@ export async function unlikePost(postId: string) {
  */
 export async function getPostComments(postId: string, limit = 50, offset = 0) {
   try {
-    const { data, error } = await supabase
+    // Get comments first
+    const { data: commentsData, error: commentsError } = await supabase
       .from('post_comments')
-      .select(`
-        *,
-        profiles:user_id (display_name)
-      `)
+      .select('*')
       .eq('post_id', postId)
       .order('created_at', { ascending: true })
       .range(offset, offset + limit - 1);
 
-    if (error) {
-      console.error('Database error fetching comments:', error);
-      throw new Error(`Database error: ${error.message || 'Unknown error'}`);
+    if (commentsError) {
+      console.error('Database error fetching comments:', commentsError);
+      throw new Error(`Database error: ${commentsError.message || 'Unknown error'}`);
     }
 
-    const comments: PostCommentWithUser[] = (data || []).map((comment: {
-      id: string;
-      post_id: string;
-      user_id: string;
-      content: string;
-      created_at: string;
-      updated_at: string;
-      profiles: { display_name: string | null } | null;
-    }) => ({
+    if (!commentsData || commentsData.length === 0) {
+      return { data: [], error: null };
+    }
+
+    // Get unique user IDs
+    const userIds = [...new Set(commentsData.map(c => c.user_id))];
+
+    // Fetch profiles for these users
+    const { data: profilesData, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, display_name')
+      .in('id', userIds);
+
+    if (profilesError) {
+      console.error('Error fetching profiles:', profilesError);
+      // Continue without profiles rather than failing
+    }
+
+    // Create a map of user_id to display_name
+    const profilesMap = new Map(
+      (profilesData || []).map(p => [p.id, p.display_name])
+    );
+
+    // Combine comments with user display names
+    const comments: PostCommentWithUser[] = commentsData.map((comment) => ({
       id: comment.id,
       post_id: comment.post_id,
       user_id: comment.user_id,
       content: comment.content,
       created_at: comment.created_at,
       updated_at: comment.updated_at,
-      user_display_name: comment.profiles?.display_name || null,
+      user_display_name: profilesMap.get(comment.user_id) || null,
     }));
 
     return { data: comments, error: null };
