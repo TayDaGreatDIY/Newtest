@@ -231,7 +231,7 @@ export async function uploadPostImage(file: File) {
     if (!user) throw new Error('User not authenticated');
 
     // Validate file type
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     if (!validTypes.includes(file.type)) {
       throw new Error('Invalid file type. Please upload a JPEG, PNG, GIF, or WebP image.');
     }
@@ -444,7 +444,7 @@ export async function getPost(postId: string) {
 
     if (error) throw error;
     if (!data) {
-      return { data: null, error: 'Post not found' };
+      throw new Error('Post not found');
     }
 
     // Check if liked by current user
