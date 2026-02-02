@@ -958,11 +958,11 @@ $$;
 
 -- CREATE POLICY "Users can update their own images"
 --   ON storage.objects FOR UPDATE
---   USING (bucket_id = 'post-images' AND auth.uid()::text = owner);
+--   USING (bucket_id = 'post-images' AND auth.uid() = owner);
 
 -- CREATE POLICY "Users can delete their own images"
 --   ON storage.objects FOR DELETE
---   USING (bucket_id = 'post-images' AND auth.uid()::text = owner);
+--   USING (bucket_id = 'post-images' AND auth.uid() = owner);
 
 -- =====================================================
 -- NEXT STEPS
