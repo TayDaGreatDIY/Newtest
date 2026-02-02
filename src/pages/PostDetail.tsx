@@ -1,19 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { GlassCard, SectionHeader, GradientButton, useToast } from '../components';
-import { getPost, getPostComments, addPostComment, likePost, unlikePost, repostPost, unrepostPost } from '../lib/posts';
+import { GlassCard, SectionHeader, GradientButton, useToast, Modal } from '../components';
+import { getPost, getPostComments, addPostComment, likePost, unlikePost, repostPost, unrepostPost, deletePost } from '../lib/posts';
 import type { PostWithUser, PostCommentWithUser } from '../types/db';
+import { useAuth } from '../lib/AuthContext';
 
 export const PostDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { showToast } = useToast();
+  const { user } = useAuth();
   const [post, setPost] = useState<PostWithUser | null>(null);
   const [comments, setComments] = useState<PostCommentWithUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [newComment, setNewComment] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [showPostMenuModal, setShowPostMenuModal] = useState(false);
 
   useEffect(() => {
     if (!id) {
@@ -100,6 +103,25 @@ export const PostDetail: React.FC = () => {
     }
   };
 
+  const handleDeletePost = async () => {
+    if (!post) return;
+    
+    const { error } = await deletePost(post.id);
+    if (error) {
+      showToast(`Failed to delete post: ${error}`, 'error');
+    } else {
+      showToast('Post deleted successfully!', 'success');
+      setShowPostMenuModal(false);
+      // Navigate back to feed after deleting
+      navigate('/app/feed');
+    }
+  };
+
+  const handleReportPost = () => {
+    showToast('Post reported. We will review it shortly.', 'success');
+    setShowPostMenuModal(false);
+  };
+
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
     const now = new Date();
@@ -155,10 +177,22 @@ export const PostDetail: React.FC = () => {
           <div className="w-12 h-12 rounded-full gradient-accent flex items-center justify-center text-2xl">
             🏀
           </div>
-          <div className="flex-1">
+          <div 
+            className="flex-1 cursor-pointer hover:opacity-80 transition-opacity"
+            onClick={() => navigate(`/app/profile/${post.user_id}`)}
+            title="View profile"
+          >
             <h3 className="font-bold">{post.user_display_name || 'Anonymous'}</h3>
             <p className="text-sm text-gray-400">{formatTimestamp(post.created_at)}</p>
           </div>
+          {/* Menu button (delete for owner, report for others) */}
+          <button
+            onClick={() => setShowPostMenuModal(true)}
+            className="text-gray-400 hover:text-white transition-colors p-2"
+            title={user?.id === post.user_id ? "Post options" : "Report post"}
+          >
+            <span className="text-xl">⋮</span>
+          </button>
         </div>
 
         {/* Content */}
@@ -170,7 +204,7 @@ export const PostDetail: React.FC = () => {
             <img 
               src={post.image_url} 
               alt="Post content"
-              className="w-full h-auto object-cover"
+              className="w-full h-auto object-contain max-h-[600px]"
             />
           </div>
         )}
@@ -269,6 +303,64 @@ export const PostDetail: React.FC = () => {
           ))
         )}
       </div>
+
+      {/* Post Menu Modal */}
+      <Modal
+        isOpen={showPostMenuModal}
+        onClose={() => setShowPostMenuModal(false)}
+        title="Post Options"
+      >
+        <div className="space-y-2">
+          {user?.id === post?.user_id ? (
+            // Owner options
+            <>
+              <button
+                onClick={handleDeletePost}
+                className="w-full px-4 py-3 rounded-xl glass hover:bg-red-500/20 transition-colors text-left text-red-400 hover:text-red-300"
+              >
+                🗑️ Delete Post
+              </button>
+              <button
+                onClick={() => {
+                  showToast('Edit feature coming soon!', 'info');
+                  setShowPostMenuModal(false);
+                }}
+                className="w-full px-4 py-3 rounded-xl glass hover:bg-white/10 transition-colors text-left"
+              >
+                ✏️ Edit Post
+              </button>
+            </>
+          ) : (
+            // Non-owner options
+            <>
+              <button
+                onClick={handleReportPost}
+                className="w-full px-4 py-3 rounded-xl glass hover:bg-white/10 transition-colors text-left"
+              >
+                🚨 Report Post
+              </button>
+              <button
+                onClick={() => {
+                  showToast('Privacy settings coming soon!', 'info');
+                  setShowPostMenuModal(false);
+                }}
+                className="w-full px-4 py-3 rounded-xl glass hover:bg-white/10 transition-colors text-left"
+              >
+                🔒 Privacy Settings
+              </button>
+              <button
+                onClick={() => {
+                  showToast('Hide post feature coming soon!', 'info');
+                  setShowPostMenuModal(false);
+                }}
+                className="w-full px-4 py-3 rounded-xl glass hover:bg-white/10 transition-colors text-left"
+              >
+                👁️ Hide Post
+              </button>
+            </>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 };

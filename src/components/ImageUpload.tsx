@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { resizeImage } from '../lib/imageUtils';
 
 interface ImageUploadProps {
   onImageSelect: (file: File, preview: string) => void;
@@ -48,7 +49,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     }
   };
 
-  const handleFile = (file: File) => {
+  const handleFile = async (file: File) => {
     setError(null);
 
     // Validate file type
@@ -63,12 +64,20 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       return;
     }
 
-    // Create preview
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      onImageSelect(file, reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    try {
+      // Resize image to standard dimensions
+      const resizedFile = await resizeImage(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        onImageSelect(resizedFile, reader.result as string);
+      };
+      reader.readAsDataURL(resizedFile);
+    } catch (err) {
+      console.error('Error resizing image:', err);
+      setError('Failed to process image. Please try another image.');
+    }
   };
 
   const handleButtonClick = () => {
@@ -81,7 +90,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         <img
           src={preview}
           alt="Preview"
-          className="w-full h-64 object-cover"
+          className="w-full h-auto max-h-[600px] object-contain bg-black/20"
         />
         <button
           onClick={onImageRemove}
