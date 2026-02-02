@@ -11,11 +11,11 @@ The `post_reposts` table is missing from your Supabase database. This table is r
 
 ## Solution
 
-You have **two options** to fix this:
+You have **two options** to fix this. **Option 1 is recommended** for best performance:
 
-### Option 1: Quick Fix - Create Only the Missing Table (Recommended if you have existing data)
+### Option 1: Quick Fix - Create the Missing Table (RECOMMENDED)
 
-This option only creates the `post_reposts` table without affecting your existing data.
+This option creates the `post_reposts` table without affecting your existing data. This is the **best solution** for performance and functionality.
 
 1. **Open your Supabase Dashboard**
    - Go to https://supabase.com/dashboard
@@ -33,9 +33,11 @@ This option only creates the `post_reposts` table without affecting your existin
 4. **Verify Success**
    - You should see: "✅ post_reposts table created successfully!"
 
-### Option 2: Update RPC Functions (Alternative if table creation fails)
+### Option 2: Update RPC Functions (Temporary workaround)
 
-If for some reason you cannot create the `post_reposts` table right now, you can update the RPC functions to handle its absence gracefully. The feed will still work, but the repost feature will not show correct status.
+If for some reason you cannot create the `post_reposts` table right now, you can update the RPC functions to handle its absence gracefully. The feed will work, but the repost feature won't show correct status.
+
+**Note:** This option has a small performance overhead as it checks for table existence on every query. Only use this if you can't create the table immediately.
 
 1. **Open your Supabase Dashboard**
    - Go to https://supabase.com/dashboard

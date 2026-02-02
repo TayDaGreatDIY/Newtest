@@ -5,8 +5,14 @@
 -- - "Failed to load post. Please try again"
 -- - "Failed to load comments"
 -- - "Failed to repost"
+-- - "relation 'public.post_reposts' does not exist"
 --
 -- Run this in your Supabase SQL Editor
+--
+-- NOTE: The functions include table existence checks to handle cases
+-- where post_reposts table hasn't been created yet. While this adds
+-- a small performance overhead, it provides resilience. For production,
+-- ensure all tables are created via mvp_migrations.sql.
 -- =====================================================
 
 -- 1. Verify and fix profiles RLS policy
