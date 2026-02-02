@@ -230,6 +230,18 @@ export async function uploadPostImage(file: File) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      throw new Error('Invalid file type. Please upload a JPEG, PNG, GIF, or WebP image.');
+    }
+
+    // Validate file size (5MB limit)
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    if (file.size > maxSize) {
+      throw new Error('File size exceeds 5MB limit. Please choose a smaller image.');
+    }
+
     // Generate unique file name
     const fileExt = file.name.split('.').pop();
     const fileName = `${user.id}/${Date.now()}.${fileExt}`;
@@ -241,7 +253,16 @@ export async function uploadPostImage(file: File) {
         upsert: false,
       });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Storage upload error:', error);
+      // Provide more specific error messages
+      if (error.message.includes('row-level security')) {
+        throw new Error('Permission denied. Please ensure the storage bucket is properly configured.');
+      } else if (error.message.includes('Bucket not found')) {
+        throw new Error('Storage bucket not found. Please contact support.');
+      }
+      throw error;
+    }
 
     // Get public URL
     const { data: { publicUrl } } = supabase.storage
@@ -308,6 +329,22 @@ export async function repostPost(postId: string) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
+    // Check if post exists first
+    const { data: postExists, error: checkError } = await supabase
+      .from('posts')
+      .select('id')
+      .eq('id', postId)
+      .maybeSingle();
+
+    if (checkError) {
+      console.error('Error checking post existence:', checkError);
+      throw new Error('Failed to verify post');
+    }
+
+    if (!postExists) {
+      throw new Error('Post not found');
+    }
+
     const { error } = await supabase
       .from('post_reposts')
       .insert({
@@ -315,7 +352,13 @@ export async function repostPost(postId: string) {
         user_id: user.id,
       });
 
-    if (error) throw error;
+    if (error) {
+      // Check if it's a duplicate repost error
+      if (error.code === '23505') {
+        throw new Error('You have already reposted this post');
+      }
+      throw error;
+    }
     return { error: null };
   } catch (error) {
     console.error('Error reposting post:', error);
@@ -397,9 +440,12 @@ export async function getPost(postId: string) {
         profiles:user_id (display_name)
       `)
       .eq('id', postId)
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
+    if (!data) {
+      throw new Error('Post not found');
+    }
 
     // Check if liked by current user
     const { data: { user } } = await supabase.auth.getUser();
