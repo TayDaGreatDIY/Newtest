@@ -108,7 +108,7 @@ export const PostDetail: React.FC = () => {
     
     const { error } = await deletePost(post.id);
     if (error) {
-      showToast(`Failed to delete post: ${error}`, 'error');
+      showToast(error || 'Failed to delete post. Please try again.', 'error');
     } else {
       showToast('Post deleted successfully!', 'success');
       setShowPostMenuModal(false);
