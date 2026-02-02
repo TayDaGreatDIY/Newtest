@@ -433,62 +433,37 @@ export async function getPostReposts(postId: string) {
  */
 export async function getPost(postId: string) {
   try {
-    const { data, error } = await supabase
-      .from('posts')
-      .select(`
-        *,
-        profiles:user_id (display_name)
-      `)
-      .eq('id', postId)
-      .maybeSingle();
+    // Use RPC function with SECURITY DEFINER to bypass RLS issues
+    // This is the same pattern as getFeedPosts and fixes the "Failed to load post" error
+    const { data, error } = await supabase.rpc('get_single_post', {
+      post_uuid: postId,
+    });
 
     if (error) throw error;
-    if (!data) {
+    
+    // RPC returns an array, get the first item
+    const postData = data && data.length > 0 ? data[0] : null;
+    
+    if (!postData) {
       throw new Error('Post not found');
     }
 
-    // Check if liked by current user
-    const { data: { user } } = await supabase.auth.getUser();
-    let isLikedByMe = false;
-    let isRepostedByMe = false;
-
-    if (user) {
-      const { data: likeData, error: likeError } = await supabase
-        .from('post_likes')
-        .select('id')
-        .eq('post_id', postId)
-        .eq('user_id', user.id)
-        .maybeSingle();
-      
-      // Only set to true if we successfully got data and no error
-      isLikedByMe = !likeError && !!likeData;
-
-      const { data: repostData, error: repostError } = await supabase
-        .from('post_reposts')
-        .select('id')
-        .eq('post_id', postId)
-        .eq('user_id', user.id)
-        .maybeSingle();
-      
-      // Only set to true if we successfully got data and no error
-      isRepostedByMe = !repostError && !!repostData;
-    }
-
+    // Transform the data to match PostWithUser interface
     const post: PostWithUser = {
-      id: data.id,
-      user_id: data.user_id,
-      type: data.type,
-      content: data.content,
-      image_url: data.image_url,
-      challenge_id: data.challenge_id,
-      likes_count: data.likes_count,
-      comments_count: data.comments_count,
-      shares_count: data.shares_count,
-      created_at: data.created_at,
-      updated_at: data.updated_at,
-      user_display_name: data.profiles?.display_name || null,
-      is_liked_by_me: isLikedByMe,
-      is_reposted_by_me: isRepostedByMe,
+      id: postData.post_id,
+      user_id: postData.user_id,
+      type: postData.post_type as 'text' | 'image' | 'challenge',
+      content: postData.post_content,
+      image_url: postData.post_image_url,
+      challenge_id: postData.post_challenge_id,
+      likes_count: postData.likes_count,
+      comments_count: postData.comments_count,
+      shares_count: postData.shares_count,
+      created_at: postData.created_at,
+      updated_at: postData.updated_at,
+      user_display_name: postData.user_display_name,
+      is_liked_by_me: postData.is_liked_by_me,
+      is_reposted_by_me: postData.is_reposted_by_me,
     };
 
     return { data: post, error: null };
