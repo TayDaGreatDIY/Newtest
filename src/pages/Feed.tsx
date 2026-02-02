@@ -22,6 +22,8 @@ export const Feed: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [touchStartTime, setTouchStartTime] = useState<number>(0);
+  const [touchTimer, setTouchTimer] = useState<NodeJS.Timeout | null>(null);
   const { showToast } = useToast();
 
   const loadPosts = useCallback(async () => {
@@ -55,8 +57,12 @@ export const Feed: React.FC = () => {
     return () => {
       unsubscribePosts();
       unsubscribeLikes();
+      // Clean up touch timer on unmount
+      if (touchTimer) {
+        clearTimeout(touchTimer);
+      }
     };
-  }, [loadPosts]);
+  }, [loadPosts, touchTimer]);
 
   const handleLike = async (postId: string, isLiked: boolean) => {
     const { error } = isLiked ? await unlikePost(postId) : await likePost(postId);
@@ -192,6 +198,44 @@ export const Feed: React.FC = () => {
   const handleImageRemove = () => {
     setSelectedImage(null);
     setImagePreview(null);
+  };
+
+  // Touch event handlers for long-press to view reposts (mobile alternative to right-click)
+  const handleTouchStart = (postId: string, e: React.TouchEvent) => {
+    const startTime = Date.now();
+    setTouchStartTime(startTime);
+    
+    // Set a timer for long press (500ms)
+    const timer = setTimeout(() => {
+      // Long press detected
+      handleShowReposts(postId);
+      // Prevent default to avoid triggering click
+      e.preventDefault();
+    }, 500);
+    
+    setTouchTimer(timer);
+  };
+
+  const handleTouchEnd = () => {
+    // Clear the timer if touch ends before long press duration
+    if (touchTimer) {
+      clearTimeout(touchTimer);
+      setTouchTimer(null);
+    }
+    
+    // If it was a quick touch (less than 500ms), it's a regular tap
+    const touchDuration = Date.now() - touchStartTime;
+    if (touchDuration < 500) {
+      // Allow normal click behavior
+    }
+  };
+
+  const handleTouchMove = () => {
+    // Cancel long press if user moves finger
+    if (touchTimer) {
+      clearTimeout(touchTimer);
+      setTouchTimer(null);
+    }
   };
 
   const formatTimestamp = (timestamp: string) => {
@@ -373,10 +417,22 @@ export const Feed: React.FC = () => {
                       e.stopPropagation();
                       handleShowReposts(post.id);
                     }}
+                    onTouchStart={(e) => {
+                      e.stopPropagation();
+                      handleTouchStart(post.id, e);
+                    }}
+                    onTouchEnd={(e) => {
+                      e.stopPropagation();
+                      handleTouchEnd();
+                    }}
+                    onTouchMove={(e) => {
+                      e.stopPropagation();
+                      handleTouchMove();
+                    }}
                     className={`flex items-center gap-2 transition-colors ${
                       post.is_reposted_by_me ? 'text-green-500' : 'text-gray-400 hover:text-white'
                     }`}
-                    title="Click to repost, right-click to see who reposted"
+                    title="Click to repost, right-click or long-press to see who reposted"
                   >
                     <span>🔄</span>
                     <span className="text-sm">{post.shares_count}</span>
