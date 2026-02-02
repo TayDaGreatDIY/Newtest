@@ -2,6 +2,8 @@
 
 This document describes the fixes applied to resolve the feed page issues.
 
+**Note**: All conflicts with main branch have been resolved via merge commit.
+
 ## Issues Fixed
 
 ### 1. Comment Bubble Error
