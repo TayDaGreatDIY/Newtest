@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GlassCard, SectionHeader, GradientButton, EmptyState, Modal, ImageUpload, useToast } from '../components';
 import { getFeedPosts, likePost, unlikePost, createPost, uploadPostImage, subscribeToPostChanges, subscribeToPostLikeChanges, repostPost, unrepostPost, getPostReposts, deletePost } from '../lib/posts';
@@ -22,6 +22,8 @@ export const Feed: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const touchTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const touchStartTimeRef = useRef<number>(0);
   const { showToast } = useToast();
 
   const loadPosts = useCallback(async () => {
@@ -55,6 +57,10 @@ export const Feed: React.FC = () => {
     return () => {
       unsubscribePosts();
       unsubscribeLikes();
+      // Clean up touch timer on unmount
+      if (touchTimerRef.current) {
+        clearTimeout(touchTimerRef.current);
+      }
     };
   }, [loadPosts]);
 
@@ -192,6 +198,37 @@ export const Feed: React.FC = () => {
   const handleImageRemove = () => {
     setSelectedImage(null);
     setImagePreview(null);
+  };
+
+  // Touch event handlers for long-press to view reposts (mobile alternative to right-click)
+  const handleTouchStart = (postId: string, e: React.TouchEvent) => {
+    // Persist the event to use it after the timeout
+    e.persist();
+    touchStartTimeRef.current = Date.now();
+    
+    // Set a timer for long press (500ms)
+    const timer = setTimeout(() => {
+      // Long press detected
+      handleShowReposts(postId);
+    }, 500);
+    
+    touchTimerRef.current = timer;
+  };
+
+  const handleTouchEnd = () => {
+    // Clear the timer if touch ends before long press duration
+    if (touchTimerRef.current) {
+      clearTimeout(touchTimerRef.current);
+      touchTimerRef.current = null;
+    }
+  };
+
+  const handleTouchMove = () => {
+    // Cancel long press if user moves finger
+    if (touchTimerRef.current) {
+      clearTimeout(touchTimerRef.current);
+      touchTimerRef.current = null;
+    }
   };
 
   const formatTimestamp = (timestamp: string) => {
@@ -373,10 +410,16 @@ export const Feed: React.FC = () => {
                       e.stopPropagation();
                       handleShowReposts(post.id);
                     }}
+                    onTouchStart={(e) => {
+                      e.stopPropagation();
+                      handleTouchStart(post.id, e);
+                    }}
+                    onTouchEnd={handleTouchEnd}
+                    onTouchMove={handleTouchMove}
                     className={`flex items-center gap-2 transition-colors ${
                       post.is_reposted_by_me ? 'text-green-500' : 'text-gray-400 hover:text-white'
                     }`}
-                    title="Click to repost, right-click to see who reposted"
+                    title="Click to repost, right-click or long-press to see who reposted"
                   >
                     <span>🔄</span>
                     <span className="text-sm">{post.shares_count}</span>
