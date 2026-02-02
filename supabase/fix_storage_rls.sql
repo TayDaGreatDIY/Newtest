@@ -6,6 +6,10 @@
 --
 -- Run this if you're getting RLS policy violations when
 -- uploading images to posts.
+--
+-- NOTE: This uses correct UUID comparison (auth.uid() = owner)
+-- instead of text casting (auth.uid()::text = owner) which
+-- would cause "operator does not exist: text = uuid" errors.
 -- =====================================================
 
 -- First, ensure the bucket exists
@@ -48,7 +52,7 @@ CREATE POLICY "Users can update their own images"
   ON storage.objects FOR UPDATE
   USING (
     bucket_id = 'post-images' AND 
-    auth.uid()::text = owner
+    auth.uid() = owner
   );
 
 -- Policy: Users can delete their own images
@@ -56,7 +60,7 @@ CREATE POLICY "Users can delete their own images"
   ON storage.objects FOR DELETE
   USING (
     bucket_id = 'post-images' AND 
-    auth.uid()::text = owner
+    auth.uid() = owner
   );
 
 -- =====================================================
