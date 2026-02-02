@@ -197,7 +197,9 @@ export async function getPostComments(postId: string, limit = 50, offset = 0) {
         content,
         created_at,
         updated_at,
-        profiles!post_comments_user_id_fkey (display_name)
+        profiles!inner (
+          display_name
+        )
       `)
       .eq('post_id', postId)
       .order('created_at', { ascending: true })
@@ -208,15 +210,17 @@ export async function getPostComments(postId: string, limit = 50, offset = 0) {
       throw new Error(`Database error: ${error.message || 'Unknown error'}`);
     }
 
-    const comments: PostCommentWithUser[] = (data || []).map((comment: {
+    interface CommentWithProfile {
       id: string;
       post_id: string;
       user_id: string;
       content: string;
       created_at: string;
       updated_at: string;
-      profiles: { display_name: string | null } | null;
-    }) => ({
+      profiles: { display_name: string | null };
+    }
+
+    const comments: PostCommentWithUser[] = (data || []).map((comment: CommentWithProfile) => ({
       id: comment.id,
       post_id: comment.post_id,
       user_id: comment.user_id,
