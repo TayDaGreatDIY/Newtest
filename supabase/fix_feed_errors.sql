@@ -26,16 +26,21 @@ BEGIN
     EXECUTE format('DROP POLICY IF EXISTS %I ON public.profiles', policy_record.policyname);
     RAISE NOTICE 'Dropped policy: %', policy_record.policyname;
   END LOOP;
+  
+  -- Create the correct policy
+  EXECUTE '
+    CREATE POLICY "Authenticated users can view all profiles"
+      ON public.profiles
+      FOR SELECT
+      USING (auth.uid() IS NOT NULL)
+  ';
 END $$;
 
--- Create the correct policy
-CREATE POLICY "Authenticated users can view all profiles"
-  ON public.profiles
-  FOR SELECT
-  USING (auth.uid() IS NOT NULL);
-
 -- 2. Ensure get_feed_posts function exists and has correct permissions
-CREATE OR REPLACE FUNCTION public.get_feed_posts(
+-- Drop existing function first if it exists with different signature
+DROP FUNCTION IF EXISTS public.get_feed_posts(INTEGER, INTEGER);
+
+CREATE FUNCTION public.get_feed_posts(
   limit_count INTEGER DEFAULT 50,
   offset_count INTEGER DEFAULT 0
 )
@@ -92,7 +97,11 @@ $$;
 GRANT EXECUTE ON FUNCTION public.get_feed_posts(INTEGER, INTEGER) TO authenticated;
 
 -- 3. Ensure get_single_post function exists and has correct permissions
-CREATE OR REPLACE FUNCTION public.get_single_post(post_uuid UUID)
+-- This uses SECURITY DEFINER to bypass RLS issues similar to get_feed_posts
+-- Drop existing function first if it exists with different signature
+DROP FUNCTION IF EXISTS public.get_single_post(UUID);
+
+CREATE FUNCTION public.get_single_post(post_uuid UUID)
 RETURNS TABLE(
   post_id UUID,
   post_type TEXT,
@@ -162,12 +171,15 @@ BEGIN
     EXECUTE format('DROP POLICY IF EXISTS %I ON public.post_comments', policy_record.policyname);
     RAISE NOTICE 'Dropped policy: %', policy_record.policyname;
   END LOOP;
+  
+  -- Create the new policy
+  EXECUTE '
+    CREATE POLICY "Authenticated users can view all comments"
+      ON public.post_comments
+      FOR SELECT
+      USING (auth.uid() IS NOT NULL)
+  ';
 END $$;
-
-CREATE POLICY "Authenticated users can view all comments"
-  ON public.post_comments
-  FOR SELECT
-  USING (auth.uid() IS NOT NULL);
 
 -- 5. Verify post_reposts RLS policies
 -- Ensure authenticated users can view all reposts
@@ -185,12 +197,15 @@ BEGIN
     EXECUTE format('DROP POLICY IF EXISTS %I ON public.post_reposts', policy_record.policyname);
     RAISE NOTICE 'Dropped policy: %', policy_record.policyname;
   END LOOP;
+  
+  -- Create the new policy
+  EXECUTE '
+    CREATE POLICY "Authenticated users can view all reposts"
+      ON public.post_reposts
+      FOR SELECT
+      USING (auth.uid() IS NOT NULL)
+  ';
 END $$;
-
-CREATE POLICY "Authenticated users can view all reposts"
-  ON public.post_reposts
-  FOR SELECT
-  USING (auth.uid() IS NOT NULL);
 
 -- 6. Verify posts RLS policies allow reading
 -- This is needed for the repost function's post existence check
@@ -208,12 +223,15 @@ BEGIN
     EXECUTE format('DROP POLICY IF EXISTS %I ON public.posts', policy_record.policyname);
     RAISE NOTICE 'Dropped policy: %', policy_record.policyname;
   END LOOP;
+  
+  -- Create the new policy
+  EXECUTE '
+    CREATE POLICY "Authenticated users can view all posts"
+      ON public.posts
+      FOR SELECT
+      USING (auth.uid() IS NOT NULL)
+  ';
 END $$;
-
-CREATE POLICY "Authenticated users can view all posts"
-  ON public.posts
-  FOR SELECT
-  USING (auth.uid() IS NOT NULL);
 
 -- =====================================================
 -- Verification Queries
