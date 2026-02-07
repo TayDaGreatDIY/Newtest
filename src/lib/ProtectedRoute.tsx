@@ -8,8 +8,11 @@ interface ProtectedRouteProps {
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { user, loading } = useAuth();
+  
+  // Demo mode for testing UI without authentication
+  const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true';
 
-  if (loading) {
+  if (loading && !isDemoMode) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-black">
         <div className="text-center">
@@ -20,7 +23,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     );
   }
 
-  if (!user) {
+  if (!user && !isDemoMode) {
     return <Navigate to="/auth/sign-in" replace />;
   }
 
