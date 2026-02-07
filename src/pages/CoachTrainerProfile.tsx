@@ -93,12 +93,13 @@ export const CoachTrainerProfile: React.FC = () => {
         const mockCoach = mockCoaches[id];
         if (!mockCoach) throw new Error('Coach not found');
         
-        setTimeout(() => {
-          setCoach(mockCoach);
-          setSchedules([]);
-          setConnection(null);
-          setLoading(false);
-        }, 300);
+        // Simulate network delay
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        setCoach(mockCoach);
+        setSchedules([]);
+        setConnection(null);
+        setLoading(false);
         return;
       }
 

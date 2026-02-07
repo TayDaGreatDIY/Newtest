@@ -41,6 +41,7 @@ export const CoachesCorner: React.FC = () => {
       
       if (isDemoMode) {
         // Mock coaches data for demo
+        // Mock coaches data for demo
         const mockCoaches: CoachTrainerWithDetails[] = [
           {
             id: '1',
@@ -157,10 +158,11 @@ export const CoachesCorner: React.FC = () => {
           );
         }
         
-        setTimeout(() => {
-          setCoaches(filteredCoaches);
-          setLoading(false);
-        }, 500); // Simulate network delay
+        // Simulate network delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        setCoaches(filteredCoaches);
+        setLoading(false);
         return;
       }
 
