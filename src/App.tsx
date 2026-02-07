@@ -19,7 +19,10 @@ import {
   Settings,
   Notifications,
   Appearance,
-  AboutM2DG
+  AboutM2DG,
+  CoachesCorner,
+  CoachTrainerProfile,
+  CoachSignup
 } from './pages';
 import { AuthProvider } from './lib/AuthContext';
 import { ProtectedRoute } from './lib/ProtectedRoute';
@@ -60,6 +63,9 @@ function App() {
               <Route path="profile/appearance" element={<Appearance />} />
               <Route path="profile/about" element={<AboutM2DG />} />
               <Route path="thinking-corner" element={<ThinkingCorner />} />
+              <Route path="coaches" element={<CoachesCorner />} />
+              <Route path="coaches/signup" element={<CoachSignup />} />
+              <Route path="coaches/:id" element={<CoachTrainerProfile />} />
             </Route>
           </Routes>
         </Router>

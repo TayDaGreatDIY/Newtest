@@ -275,6 +275,103 @@ export interface UpdateAICoachPreferencesInput {
 }
 
 // =====================================================
+// COACHES AND TRAINERS
+// =====================================================
+export interface CoachTrainer {
+  id: string;
+  user_id: string;
+  role: 'coach' | 'trainer' | 'both';
+  bio: string | null;
+  specialties: string[];
+  calendly_link: string | null;
+  years_of_experience: number | null;
+  hourly_rate: number | null;
+  location: string | null;
+  is_verified: boolean;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CoachTrainerWithDetails extends CoachTrainer {
+  display_name: string | null;
+  certification_count: number;
+  connection_count: number;
+  upcoming_sessions_count?: number;
+}
+
+export interface CreateCoachTrainerInput {
+  role: 'coach' | 'trainer' | 'both';
+  bio?: string;
+  specialties?: string[];
+  calendly_link?: string;
+  years_of_experience?: number;
+  hourly_rate?: number;
+  location?: string;
+}
+
+export interface CoachCertification {
+  id: string;
+  coach_id: string;
+  certification_type: 'resume' | 'certification' | 'reference' | 'other';
+  document_url: string;
+  document_name: string;
+  description: string | null;
+  verified: boolean;
+  created_at: string;
+}
+
+export interface CreateCoachCertificationInput {
+  coach_id: string;
+  certification_type: 'resume' | 'certification' | 'reference' | 'other';
+  document_url: string;
+  document_name: string;
+  description?: string;
+}
+
+export interface CoachSchedule {
+  id: string;
+  coach_id: string;
+  title: string;
+  description: string | null;
+  session_type: 'individual' | 'group' | 'workshop' | 'clinic';
+  start_time: string;
+  end_time: string;
+  max_participants: number;
+  location: string | null;
+  price: number | null;
+  is_available: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateCoachScheduleInput {
+  title: string;
+  description?: string;
+  session_type: 'individual' | 'group' | 'workshop' | 'clinic';
+  start_time: string;
+  end_time: string;
+  max_participants?: number;
+  location?: string;
+  price?: number;
+}
+
+export interface AthleteCoachConnection {
+  id: string;
+  athlete_id: string;
+  coach_id: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  requested_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AthleteCoachConnectionWithDetails extends AthleteCoachConnection {
+  coach_display_name: string | null;
+  athlete_display_name: string | null;
+}
+
+// =====================================================
 // FORM VALIDATION TYPES
 // =====================================================
 export interface ValidationError {

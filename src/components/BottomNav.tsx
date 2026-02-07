@@ -10,7 +10,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { path: '/app/feed', icon: '🏠', label: 'Feed' },
   { path: '/app/courts', icon: '🏀', label: 'Courts' },
-  { path: '/app/challenges', icon: '⚔️', label: 'Challenges' },
+  { path: '/app/coaches', icon: '🏆', label: 'Coaches' },
   { path: '/app/messages', icon: '💬', label: 'Messages' },
   { path: '/app/profile', icon: '👤', label: 'Profile' },
 ];
