@@ -21,7 +21,52 @@ export const CoachSignup: React.FC = () => {
   const [hourlyRate, setHourlyRate] = useState('');
   const [location, setLocation] = useState('');
   const [certificationType, setCertificationType] = useState<'resume' | 'certification' | 'reference' | 'other'>('certification');
-  const [certificationFiles, setCertificationFiles] = useState<string[]>([]);
+  const [certificationFile, setCertificationFile] = useState<File | null>(null);
+  const [certificationPreview, setCertificationPreview] = useState<string | null>(null);
+  const [uploadedCertifications, setUploadedCertifications] = useState<Array<{ url: string; name: string }>>([]);
+  const [uploading, setUploading] = useState(false);
+
+  const handleCertificationUpload = async () => {
+    if (!certificationFile || !user) return;
+
+    setUploading(true);
+    setError(null);
+
+    try {
+      const fileExt = certificationFile.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      const { data, error: uploadError } = await supabase.storage
+        .from('post-images')
+        .upload(fileName, certificationFile);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('post-images')
+        .getPublicUrl(data.path);
+
+      setUploadedCertifications([
+        ...uploadedCertifications,
+        { url: publicUrl, name: certificationFile.name }
+      ]);
+      setCertificationFile(null);
+      setCertificationPreview(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to upload certification');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleCertificationSelect = (file: File, preview: string) => {
+    setCertificationFile(file);
+    setCertificationPreview(preview);
+  };
+
+  const handleCertificationRemove = () => {
+    setCertificationFile(null);
+    setCertificationPreview(null);
+  };
 
   const addSpecialty = () => {
     if (specialtyInput.trim() && !specialties.includes(specialtyInput.trim())) {
@@ -34,8 +79,8 @@ export const CoachSignup: React.FC = () => {
     setSpecialties(specialties.filter((s) => s !== specialty));
   };
 
-  const handleImageUpload = (url: string) => {
-    setCertificationFiles([...certificationFiles, url]);
+  const removeCertification = (index: number) => {
+    setUploadedCertifications(uploadedCertifications.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async () => {
@@ -44,7 +89,7 @@ export const CoachSignup: React.FC = () => {
       return;
     }
 
-    if (certificationFiles.length === 0) {
+    if (uploadedCertifications.length === 0) {
       setError('Please upload at least one certification document');
       return;
     }
@@ -74,12 +119,12 @@ export const CoachSignup: React.FC = () => {
       if (coachError) throw coachError;
 
       // Upload certifications
-      const certificationPromises = certificationFiles.map((url, index) => {
+      const certificationPromises = uploadedCertifications.map((cert) => {
         return supabase.from('coach_certifications').insert({
           coach_id: coachData.id,
           certification_type: certificationType,
-          document_url: url,
-          document_name: `Document ${index + 1}`,
+          document_url: cert.url,
+          document_name: cert.name,
           verified: false
         });
       });
@@ -331,7 +376,7 @@ export const CoachSignup: React.FC = () => {
                 <label className="block text-sm font-medium mb-2">Document Type</label>
                 <select
                   value={certificationType}
-                  onChange={(e) => setCertificationType(e.target.value as any)}
+                  onChange={(e) => setCertificationType(e.target.value as 'resume' | 'certification' | 'reference' | 'other')}
                   className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 focus:border-purple-500 focus:outline-none"
                 >
                   <option value="certification">Certification</option>
@@ -341,18 +386,38 @@ export const CoachSignup: React.FC = () => {
                 </select>
               </div>
 
-              <ImageUpload onUploadComplete={handleImageUpload} />
+              <ImageUpload
+                onImageSelect={handleCertificationSelect}
+                onImageRemove={handleCertificationRemove}
+                preview={certificationPreview}
+              />
 
-              {certificationFiles.length > 0 && (
+              {certificationFile && !uploading && (
+                <GradientButton
+                  variant="secondary"
+                  fullWidth
+                  onClick={handleCertificationUpload}
+                >
+                  Upload Document
+                </GradientButton>
+              )}
+
+              {uploading && (
+                <div className="text-center text-gray-400 py-2">
+                  Uploading...
+                </div>
+              )}
+
+              {uploadedCertifications.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-sm font-medium">Uploaded Documents ({certificationFiles.length})</p>
+                  <p className="text-sm font-medium">Uploaded Documents ({uploadedCertifications.length})</p>
                   <div className="space-y-2">
-                    {certificationFiles.map((file, idx) => (
+                    {uploadedCertifications.map((cert, idx) => (
                       <div key={idx} className="flex items-center gap-2 p-2 glass rounded-lg">
                         <span className="text-xs">📄</span>
-                        <span className="text-xs text-gray-400 flex-1 truncate">Document {idx + 1}</span>
+                        <span className="text-xs text-gray-400 flex-1 truncate">{cert.name}</span>
                         <button
-                          onClick={() => setCertificationFiles(certificationFiles.filter((_, i) => i !== idx))}
+                          onClick={() => removeCertification(idx)}
                           className="text-xs text-red-400 hover:text-red-300"
                         >
                           Remove
@@ -373,7 +438,7 @@ export const CoachSignup: React.FC = () => {
               variant="primary"
               fullWidth
               onClick={handleSubmit}
-              disabled={loading || certificationFiles.length === 0}
+              disabled={loading || uploadedCertifications.length === 0}
             >
               {loading ? 'Creating Profile...' : 'Complete Setup'}
             </GradientButton>

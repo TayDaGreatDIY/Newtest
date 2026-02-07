@@ -31,7 +31,7 @@ export const CoachTrainerProfile: React.FC = () => {
         .single();
 
       if (coachError) throw coachError;
-      setCoach(coachData);
+      setCoach(coachData as CoachTrainerWithDetails);
 
       // Load schedules
       const { data: schedulesData } = await supabase
