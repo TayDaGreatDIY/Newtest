@@ -84,7 +84,7 @@ export const CoachesCorner: React.FC = () => {
             id: '3',
             user_id: 'demo-user-3',
             role: 'both',
-            bio: 'Elite performance coach combining basketball expertise with advanced training techniques. Work with NBA players.',
+            bio: 'Elite performance coach combining basketball expertise with advanced training techniques. Works with NBA players.',
             specialties: ['Elite Training', 'Mental Conditioning', 'Game Strategy'],
             years_of_experience: 15,
             hourly_rate: 150,
@@ -139,10 +139,12 @@ export const CoachesCorner: React.FC = () => {
           }
         ];
         
-        // Filter by role
+        // Filter by role - include 'both' when filtering for specific roles
         let filteredCoaches = mockCoaches;
         if (filterRole !== 'all') {
-          filteredCoaches = mockCoaches.filter(c => c.role === filterRole);
+          filteredCoaches = mockCoaches.filter(c => 
+            c.role === filterRole || c.role === 'both'
+          );
         }
         
         // Filter by search query

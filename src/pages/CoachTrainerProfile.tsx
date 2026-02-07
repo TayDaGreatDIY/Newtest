@@ -73,7 +73,7 @@ export const CoachTrainerProfile: React.FC = () => {
             id: '3',
             user_id: 'demo-user-3',
             role: 'both',
-            bio: 'Elite performance coach combining basketball expertise with advanced training techniques. Work with NBA players and professional athletes.',
+            bio: 'Elite performance coach combining basketball expertise with advanced training techniques. Works with NBA players and professional athletes.',
             specialties: ['Elite Training', 'Mental Conditioning', 'Game Strategy', 'Performance Analysis'],
             years_of_experience: 15,
             hourly_rate: 150,
