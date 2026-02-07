@@ -31,7 +31,7 @@ ALTER TABLE public.coaches_trainers ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Anyone can view active coaches and trainers"
   ON public.coaches_trainers
   FOR SELECT
-  USING (auth.uid() IS NOT NULL AND is_active = true);
+  USING (is_active = true);
 
 CREATE POLICY "Coaches/trainers can insert own profile"
   ON public.coaches_trainers
@@ -77,7 +77,7 @@ ALTER TABLE public.coach_certifications ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Anyone can view verified certifications"
   ON public.coach_certifications
   FOR SELECT
-  USING (auth.uid() IS NOT NULL AND verified = true);
+  USING (verified = true);
 
 CREATE POLICY "Coaches can view own certifications"
   ON public.coach_certifications
@@ -135,7 +135,7 @@ ALTER TABLE public.coach_schedules ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Anyone can view available schedules"
   ON public.coach_schedules
   FOR SELECT
-  USING (auth.uid() IS NOT NULL AND is_available = true);
+  USING (is_available = true);
 
 CREATE POLICY "Coaches can insert own schedules"
   ON public.coach_schedules

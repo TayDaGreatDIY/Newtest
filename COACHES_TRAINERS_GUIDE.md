@@ -25,10 +25,12 @@ This will create the following tables:
 ### 2. Verify Row Level Security (RLS)
 
 All tables have RLS enabled with the following policies:
-- Public can view active coaches and their verified certifications
-- Coaches can manage their own profiles, schedules, and certifications
-- Athletes can send connection requests
-- Both parties can view and update their connections
+- **Public viewing**: Anyone (authenticated or not) can view active coaches and their verified certifications
+- **Profile management**: Coaches can manage their own profiles, schedules, and certifications
+- **Connection requests**: Authenticated athletes can send connection requests
+- **Connection management**: Both parties can view and update their connections
+
+**Note**: While the database allows public viewing of coaches, the app UI requires authentication to access the coaches pages through `/app/coaches`. Users must sign in to browse and connect with coaches.
 
 ### 3. Storage Bucket
 
@@ -194,6 +196,56 @@ Parameters:
 - [ ] Verify RLS policies prevent unauthorized access
 - [ ] Test on mobile devices
 - [ ] Verify build and deployment
+
+## Troubleshooting
+
+### Coaches not showing up
+
+If coaches are not appearing on the `/app/coaches` page:
+
+1. **Verify database migration was applied**:
+   - Check that `coaches_trainers_system.sql` was executed in Supabase SQL Editor
+   - Verify tables exist: `coaches_trainers`, `coach_certifications`, `coach_schedules`, `athlete_coach_connections`
+   - Verify functions exist: `get_coaches_trainers()`, `get_coach_profile()`
+
+2. **Check RLS policies**:
+   - Run the test script: `supabase/test_coaches_rls.sql`
+   - Verify SELECT policies allow public access (no `auth.uid() IS NOT NULL` requirement)
+
+3. **Add test data**:
+   ```sql
+   -- Insert a test coach
+   INSERT INTO public.coaches_trainers (
+     user_id, role, bio, specialties, years_of_experience, 
+     hourly_rate, location, is_verified, is_active
+   ) VALUES (
+     auth.uid(), -- Your user ID
+     'coach',
+     'Test coach bio',
+     ARRAY['Basketball', 'Training'],
+     5,
+     50.00,
+     'Test City',
+     true,
+     true
+   );
+   ```
+
+4. **Test the RPC function directly**:
+   ```sql
+   SELECT * FROM get_coaches_trainers(NULL, NULL, 10, 0);
+   ```
+
+5. **Use demo mode for testing**:
+   - Set `VITE_DEMO_MODE=true` in `.env` file
+   - This bypasses database and uses mock data
+   - Useful for verifying UI works before connecting to database
+
+### Authentication issues
+
+- Users must be signed in to access `/app/coaches`
+- If redirected to sign-in page, create an account first
+- Demo mode can be used to test without authentication
 
 ## Support
 
