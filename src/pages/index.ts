@@ -17,3 +17,6 @@ export { Settings } from './Settings';
 export { Notifications } from './Notifications';
 export { Appearance } from './Appearance';
 export { AboutM2DG } from './AboutM2DG';
+export { CoachesCorner } from './CoachesCorner';
+export { CoachTrainerProfile } from './CoachTrainerProfile';
+export { CoachSignup } from './CoachSignup';

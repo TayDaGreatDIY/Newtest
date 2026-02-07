@@ -42,7 +42,23 @@ The app is deployed automatically via GitHub Actions on every push to the `main`
 - ✅ **Real-Time Messaging**: Direct messaging between players with instant updates
 - ✅ **Image Upload**: Upload and share photos via Supabase Storage
 - ✅ **Social Interactions**: Like, comment, and share posts
-- 🔧 **AI Coach**: Basic version working (optional OpenAI integration for enhanced features)
+- ✅ **AI Coach**: Basic version working (optional OpenAI integration for enhanced features)
+
+### NEW: Coaches & Trainers Corner ✅
+
+**Professional coaching and training services integrated into the platform!**
+
+- 🏆 **Coach/Trainer Profiles**: Browse certified coaches and trainers with verified credentials
+- 📄 **Credential Verification**: Upload and verify resumes, certifications, and references
+- 📅 **Calendly Integration**: Direct scheduling with coaches through integrated Calendly links
+- 🤝 **Connection System**: Athletes can connect with coaches and trainers
+- 🔍 **Advanced Search**: Filter by role, location, specialty, and experience
+- 💪 **Multiple Roles**: Support for coaches, trainers, or both
+- 📊 **Session Management**: Coaches can create and manage training sessions
+- ⭐ **Verification Badges**: Verified coach status displayed on profiles
+
+> 📘 **Setup Guide:** See [`COACHES_TRAINERS_GUIDE.md`](COACHES_TRAINERS_GUIDE.md) for setup instructions  
+> 📋 **Implementation:** See [`COACHES_TRAINERS_IMPLEMENTATION_SUMMARY.md`](COACHES_TRAINERS_IMPLEMENTATION_SUMMARY.md) for details
 
 > 📘 **Production Ready:** See [`PRODUCTION_CHECKLIST.md`](PRODUCTION_CHECKLIST.md) for deployment  
 > 🧪 **Testing Guide:** See [`TESTING_GUIDE.md`](TESTING_GUIDE.md) for comprehensive testing steps  

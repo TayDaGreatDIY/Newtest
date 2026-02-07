@@ -157,6 +157,20 @@ export const Profile: React.FC = () => {
           <div className="text-3xl mb-2">⚔️</div>
           <p className="text-sm font-semibold">Challenges</p>
         </GlassCard>
+        <GlassCard 
+          className="text-center cursor-pointer hover:bg-white/10 transition-colors"
+          onClick={() => navigate('/app/coaches')}
+        >
+          <div className="text-3xl mb-2">🏆</div>
+          <p className="text-sm font-semibold">Find Coaches</p>
+        </GlassCard>
+        <GlassCard 
+          className="text-center cursor-pointer hover:bg-white/10 transition-colors"
+          onClick={() => navigate('/app/thinking-corner')}
+        >
+          <div className="text-3xl mb-2">🤖</div>
+          <p className="text-sm font-semibold">AI Coach</p>
+        </GlassCard>
       </div>
 
       {/* Champion Status */}
