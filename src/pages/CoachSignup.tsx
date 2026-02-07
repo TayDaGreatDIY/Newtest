@@ -34,6 +34,9 @@ export const CoachSignup: React.FC = () => {
 
     try {
       const fileExt = certificationFile.name.split('.').pop();
+      if (!fileExt) {
+        throw new Error('Invalid file name - no extension found');
+      }
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
       const { data, error: uploadError } = await supabase.storage
         .from('post-images')

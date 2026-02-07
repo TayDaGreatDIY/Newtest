@@ -246,6 +246,10 @@ CREATE TRIGGER on_athlete_coach_connections_updated
 -- =====================================================
 
 -- Function to get coaches/trainers with details
+-- NOTE: For production use with large datasets, consider:
+-- 1. Adding pg_trgm extension for trigram-based search
+-- 2. Creating GIN indexes on text columns for better ILIKE performance
+-- 3. Implementing full-text search with tsvector/tsquery
 CREATE OR REPLACE FUNCTION get_coaches_trainers(
   p_role TEXT DEFAULT NULL,
   p_search TEXT DEFAULT NULL,

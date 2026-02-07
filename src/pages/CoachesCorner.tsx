@@ -54,8 +54,11 @@ export const CoachesCorner: React.FC = () => {
 
   useEffect(() => {
     checkIfCoachOrTrainer();
+  }, [checkIfCoachOrTrainer]);
+
+  useEffect(() => {
     loadCoaches();
-  }, [checkIfCoachOrTrainer, loadCoaches]);
+  }, [loadCoaches]);
 
   const getRoleIcon = (role: string) => {
     switch (role) {

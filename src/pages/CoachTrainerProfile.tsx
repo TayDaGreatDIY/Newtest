@@ -260,7 +260,10 @@ export const CoachTrainerProfile: React.FC = () => {
             <GradientButton
               variant="primary"
               fullWidth
-              onClick={() => window.open(coach.calendly_link!, '_blank')}
+              onClick={() => {
+                const win = window.open(coach.calendly_link!, '_blank', 'noopener,noreferrer');
+                if (win) win.opener = null;
+              }}
             >
               📅 Schedule a Session
             </GradientButton>
