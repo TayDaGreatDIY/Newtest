@@ -41,7 +41,6 @@ export const CoachesCorner: React.FC = () => {
       
       if (isDemoMode) {
         // Mock coaches data for demo
-        // Mock coaches data for demo
         const mockCoaches: CoachTrainerWithDetails[] = [
           {
             id: '1',
