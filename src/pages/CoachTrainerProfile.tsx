@@ -25,6 +25,83 @@ export const CoachTrainerProfile: React.FC = () => {
     setError(null);
 
     try {
+      // Demo mode - use mock data
+      const isDemoMode = import.meta.env.VITE_DEMO_MODE === 'true';
+      
+      if (isDemoMode) {
+        // Mock coaches data
+        const mockCoaches: { [key: string]: CoachTrainerWithDetails } = {
+          '1': {
+            id: '1',
+            user_id: 'demo-user-1',
+            role: 'coach',
+            bio: 'Former college basketball player with 10+ years of coaching experience. Specialized in player development and fundamentals.',
+            specialties: ['Shooting', 'Ball Handling', 'Player Development'],
+            years_of_experience: 10,
+            hourly_rate: 75,
+            location: 'Los Angeles, CA',
+            calendly_link: 'https://calendly.com/coach-demo',
+            is_verified: true,
+            is_active: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            display_name: 'Coach Mike Johnson',
+            certification_count: 3,
+            connection_count: 45,
+            upcoming_sessions_count: 8
+          },
+          '2': {
+            id: '2',
+            user_id: 'demo-user-2',
+            role: 'trainer',
+            bio: 'Certified strength and conditioning specialist. Focus on athletic performance, injury prevention, and recovery.',
+            specialties: ['Strength Training', 'Conditioning', 'Injury Prevention'],
+            years_of_experience: 8,
+            hourly_rate: 65,
+            location: 'New York, NY',
+            calendly_link: 'https://calendly.com/trainer-demo',
+            is_verified: true,
+            is_active: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            display_name: 'Sarah Williams',
+            certification_count: 5,
+            connection_count: 32,
+            upcoming_sessions_count: 12
+          },
+          '3': {
+            id: '3',
+            user_id: 'demo-user-3',
+            role: 'both',
+            bio: 'Elite performance coach combining basketball expertise with advanced training techniques. Work with NBA players and professional athletes.',
+            specialties: ['Elite Training', 'Mental Conditioning', 'Game Strategy', 'Performance Analysis'],
+            years_of_experience: 15,
+            hourly_rate: 150,
+            location: 'Miami, FL',
+            calendly_link: 'https://calendly.com/elite-coach',
+            is_verified: true,
+            is_active: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            display_name: 'Coach David Martinez',
+            certification_count: 8,
+            connection_count: 89,
+            upcoming_sessions_count: 15
+          }
+        };
+        
+        const mockCoach = mockCoaches[id];
+        if (!mockCoach) throw new Error('Coach not found');
+        
+        setTimeout(() => {
+          setCoach(mockCoach);
+          setSchedules([]);
+          setConnection(null);
+          setLoading(false);
+        }, 300);
+        return;
+      }
+
       // Load coach profile
       const { data: coachData, error: coachError } = await supabase
         .rpc('get_coach_profile', { p_coach_id: id })
